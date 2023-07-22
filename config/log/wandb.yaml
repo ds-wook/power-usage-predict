@@ -1,0 +1,3 @@
+project: power-usage-predict
+entity: ds-wook
+name: lightgbm-test

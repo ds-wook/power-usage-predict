@@ -1,0 +1,14 @@
+drop_train_features:
+  - sunshine
+  - solar_radiation
+drop_features:
+  - solar_power_capacity
+  - ess_capacity
+  - pcs_capacity
+  - num_date_time
+categorical_features:
+  - month
+  - hour
+  - day
+  - weekday
+  - building_type
