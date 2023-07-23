@@ -16,7 +16,7 @@ import xgboost as xgb
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from pytorch_tabnet.multitask import TabNetMultiTaskClassifier
-from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import KFold
 
 warnings.filterwarnings("ignore")
 
@@ -48,7 +48,7 @@ class BaseModel(metaclass=ABCMeta):
         Save model
         """
         model_path = (
-            Path(get_original_cwd()) / self.config.models.path / self.config.models.name / self.config.models.result
+            Path(get_original_cwd()) / self.config.models.path / self.config.models.name / self.config.models.results
         )
 
         with open(model_path, "wb") as output:
@@ -71,10 +71,10 @@ class BaseModel(metaclass=ABCMeta):
 
     def train_cross_validation(self, train_x: pd.DataFrame, train_y: pd.Series) -> BaseModel:
         models = dict()
-        tscv = TimeSeriesSplit(n_splits=self.config.models.n_splits)
+        tscv = KFold(n_splits=self.config.data.n_splits)
         oof_preds = np.zeros(train_x.shape[0])
 
-        for fold, (train_idx, valid_idx) in enumerate(tscv.splits(train_x), 1):
+        for fold, (train_idx, valid_idx) in enumerate(tscv.split(train_x), 1):
             self._num_fold_iter = fold
             x_train, y_train = train_x.iloc[train_idx], train_y.iloc[train_idx]
             x_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]

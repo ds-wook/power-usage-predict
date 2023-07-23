@@ -1,6 +1,7 @@
 import pickle
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
@@ -54,15 +55,14 @@ def add_features(cfg: DictConfig, df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         dataframe
     """
-    df_num_agg = df.groupby("building_number")[[*cfg.features.numerical_features]].agg(
-        ["first", "mean", "last", "max", "min", "std"]
-    )
-    df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
-    for col in df_num_agg:
-        if "last" in col and col.replace("last", "first") in df_num_agg:
-            df_num_agg[col + "_lag_sub"] = df_num_agg[col] - df_num_agg[col.replace("last", "first")]
+    df["total_area"] = np.log1p(df["total_area"])
+    df["cooling_area"] = np.log1p(df["cooling_area"])
 
-    df = pd.merge(df, df_num_agg, on="building_number", how="left")
+    weather_features = ["temperature", "rainfall", "windspeed", "humidity"]
+    df_num_agg = df.groupby(["building_number", "day", "month"])[weather_features].agg(["mean"])
+    df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
+
+    df = pd.merge(df, df_num_agg, on=["building_number", "day", "month"], how="left")
 
     return df
 

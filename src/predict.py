@@ -15,9 +15,10 @@ from data.dataset import load_test_dataset
 def _main(cfg: DictConfig):
     test_x = load_test_dataset(cfg)
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
+    model_path = Path(get_original_cwd()) / cfg.models.path / cfg.models.name
 
     if cfg.models.name == "lightgbm":
-        model = lgb.Booster(model_file=Path(get_original_cwd()) / cfg.models.path / cfg.models.results)
+        model = lgb.Booster(model_file=model_path / cfg.models.results)
         pred = model.predict(test_x)
         submit["answer"] = pred
         submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)

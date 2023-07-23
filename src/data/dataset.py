@@ -5,6 +5,7 @@ from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 
 from features.engine import (
+    add_features,
     add_time_features,
     categorize_test_features,
     categorize_train_features,
@@ -27,20 +28,26 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
 
     # date time feature 생성
     train = add_time_features(train)
+    train = add_features(cfg, train)
     train = fill_missing_features(cfg, train)
     train = categorize_train_features(cfg, train)
 
     # split train, valid
-    train_x = train[train["date_time"] < cfg.data.split_date]
-    valid_x = train[train["date_time"] >= cfg.data.split_date]
+    if cfg.models.name != "n_beats":
+        train_x = train[train["date_time"] < cfg.data.split_date]
+        valid_x = train[train["date_time"] >= cfg.data.split_date]
+        train_x = train_x.drop(columns=[*cfg.features.drop_features])
+        valid_x = valid_x.drop(columns=[*cfg.features.drop_features])
+        X_train = train_x.drop(columns=[cfg.data.target])
+        y_train = train_x[cfg.data.target]
+        X_valid = valid_x.drop(columns=[cfg.data.target])
+        y_valid = valid_x[cfg.data.target]
 
-    train_x = train_x.drop(columns=[*cfg.features.drop_features])
-    valid_x = valid_x.drop(columns=[*cfg.features.drop_features])
+    else:
+        train_x = train[train["date_time"] < cfg.data.split_date]
+        valid_x = train[train["date_time"] >= cfg.data.split_date]
 
-    X_train = train_x.drop(columns=[cfg.data.target])
-    y_train = train_x[cfg.data.target]
-    X_valid = valid_x.drop(columns=[cfg.data.target])
-    y_valid = valid_x[cfg.data.target]
+        return train_x, valid_x
 
     return X_train, y_train, X_valid, y_valid
 
@@ -60,6 +67,7 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
 
     # add feature
     test = add_time_features(test)
+    test = add_features(cfg, test)
     test = fill_missing_features(cfg, test)
     test = categorize_test_features(cfg, test)
 

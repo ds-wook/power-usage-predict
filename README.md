@@ -85,16 +85,8 @@ The boosting model has a significant performance difference compared to the NN. 
 
 ## Submit
 
-The file `submit` in the `output` folder is the file we finally submitted.
-`best-lb-bootstrap-group-fold-enemble.csv` is an ensemble result of existing baseline models and models learned by 5Group KFold. In the case of `rank-nural-enemble.csv`, it is a result of adding existing baseline models and 5Group KFold models, and 5Fold models.
-
 ## Doesn't Work
 
-- Boosting ranker model: Failed to process data to learn rank.
-- Boosting binary model: binary learning took a long time. Not only did the training take a long time, but the model was not able to distinguish properly. This seems to be a problem caused by the lack of feature.
-- Using the Boosting Ranker model after generation of candidates: It seems that it was not distinguished well because of the lack of features.
-- As a result of using 4 layers, the difference in score between CV and LB seems to be overfitting.
-- The Graph model took too long to learn.
 
 ## Reference
 
