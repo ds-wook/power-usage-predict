@@ -1,9 +1,10 @@
-from sklearn.preprocessing import LabelEncoder
-from omegaconf import DictConfig
-import pandas as pd
 import pickle
 from pathlib import Path
+
+import pandas as pd
 from hydra.utils import get_original_cwd
+from omegaconf import DictConfig
+from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
 
 
@@ -43,3 +44,57 @@ def categorize_test_features(cfg: DictConfig, test: pd.DataFrame) -> pd.DataFram
         test[cat_feature] = le.transform(test[cat_feature])
 
     return test
+
+
+def add_features(cfg: DictConfig, df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add features
+    Args:
+        df: dataframe
+    Returns:
+        dataframe
+    """
+    df_num_agg = df.groupby("building_number")[[*cfg.features.numerical_features]].agg(
+        ["first", "mean", "last", "max", "min", "std"]
+    )
+    df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
+    for col in df_num_agg:
+        if "last" in col and col.replace("last", "first") in df_num_agg:
+            df_num_agg[col + "_lag_sub"] = df_num_agg[col] - df_num_agg[col.replace("last", "first")]
+
+    df = pd.merge(df, df_num_agg, on="building_number", how="left")
+
+    return df
+
+
+def fill_missing_features(cfg: DictConfig, df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Fill missing features
+    Args:
+        df: dataframe
+    Returns:
+        dataframe
+    """
+
+    for col in tqdm(["rainfall", "windspeed", "humidity"], leave=False):
+        df[col] = df[col].fillna(df.groupby("building_number")[col].transform("mean"))
+
+    return df
+
+
+def add_time_features(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Add time features
+    Args:
+        df: dataframe
+    Returns:
+        dataframe
+    """
+    df["date_time"] = pd.to_datetime(df["date_time"], format="%Y%m%d %H")
+    df["hour"] = df["date_time"].dt.hour
+    df["day"] = df["date_time"].dt.day
+    df["month"] = df["date_time"].dt.month
+    df["weekday"] = df["date_time"].dt.weekday
+    df["weekend"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
+
+    return df

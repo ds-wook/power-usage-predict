@@ -3,6 +3,7 @@ defaults:
   - data: dataset
   - features: features
   - models: lightgbm
-  - hydra: default
+  - hydra: custom
+  - log: wandb
   - override hydra/hydra_logging: disabled
   - override hydra/job_logging: disabled

@@ -21,3 +21,8 @@ train.head()
 # %%
 train["태양광용량(kW)"].value_counts()
 # %%
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.distplot(np.log1p(train["강수량(mm)"]))
+# %%

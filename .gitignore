@@ -165,3 +165,4 @@ output/*
 res/*
 !res/.gitkeep
 .vscode/*
+log/*

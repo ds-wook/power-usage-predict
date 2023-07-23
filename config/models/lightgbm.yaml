@@ -1,16 +1,18 @@
-task_type: binary
-n_splits: 10
 params:
-  objective: regression
+  objective: tweedie
   learning_rate: 0.05
-  num_leaves: 16
-  max_depth: -1
+  num_leaves: 100
+  lambda_l2: 0.0001
+  lambda_l1: 0.0001
+  feature_fraction: 0.2
+  bagging_fraction: 0.5
+  bagging_freq: 10
+  min_data_in_leaf: 10
   seed: 42
   verbose: -1
-multi_task: True
 path: res/models/
 name: lightgbm
-results: lightgbm_results.txt
+results: 5fold-lightgbm-results.pkl
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 100

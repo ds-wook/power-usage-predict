@@ -6,9 +6,29 @@ drop_features:
   - ess_capacity
   - pcs_capacity
   - num_date_time
+  - date_time
 categorical_features:
   - month
   - hour
   - day
   - weekday
   - building_type
+numerical_features:
+  - temperature
+  - rainfall
+  - windspeed
+  - humidity
+  - total_area
+  - cooling_area
+lag_range:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+  - 8
+  - 9
+  - 10
+  
