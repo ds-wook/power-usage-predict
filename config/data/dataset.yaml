@@ -5,7 +5,8 @@ train: train.csv
 test: test.csv
 building_info: building_info.csv
 submit: sample_submission.csv
-split_date: 2022-08-01
+start_date: 2022-08-01
+end_date: 2022-09-01
 n_splits: 5
 test_size: 2
 dataset_rename:

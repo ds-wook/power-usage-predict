@@ -34,8 +34,8 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
 
     # split train, valid
     if cfg.models.name != "n_beats":
-        train_x = train[train["date_time"] < cfg.data.split_date]
-        valid_x = train[train["date_time"] >= cfg.data.split_date]
+        train_x = train[train["date_time"] < cfg.data.start_date]
+        valid_x = train[((train["date_time"] >= cfg.data.start_date) & (train["date_time"] < cfg.data.end_date))]
         train_x = train_x.drop(columns=[*cfg.features.drop_features])
         valid_x = valid_x.drop(columns=[*cfg.features.drop_features])
         X_train = train_x.drop(columns=[cfg.data.target])
