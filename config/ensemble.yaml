@@ -13,8 +13,8 @@ output:
   submit: sample_submission.csv
 
 ensemble:
-  preds1: lightgbm-2022-08-01.csv
-  preds2: lightgbm-2022-08-05.csv
-  preds3: lightgbm-2022-08-10.csv
-  preds4: lightgbm-2022-08-15.csv
-  preds5: lightgbm-2022-08-20.csv
+  - lightgbm-2022-08-01.csv
+  - lightgbm-2022-08-05.csv
+  - lightgbm-2022-08-10.csv
+  - lightgbm-2022-08-15.csv
+  - lightgbm-2022-08-20.csv
