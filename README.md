@@ -91,3 +91,4 @@ The boosting model has a significant performance difference compared to the NN. 
 ## Reference
 
 - [Model](https://www.sciencedirect.com/science/article/pii/S0169207021001874)
+- [Loss](https://www.sciencedirect.com/science/article/pii/S0169207021001679)
