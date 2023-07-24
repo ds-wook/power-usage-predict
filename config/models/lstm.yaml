@@ -1,0 +1,12 @@
+window_size: 24
+batch_size: 64
+patience: 10
+hidden_size: 64
+input_size: 19
+output_size: 1
+num_layers: 5
+lr: 0.001
+num_epochs: 100
+path: res/models/
+name: lstm
+results: lstm-2022-08-01-solar.pth
