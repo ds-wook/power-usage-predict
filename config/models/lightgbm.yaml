@@ -15,4 +15,4 @@ name: lightgbm
 results: 5fold-lightgbm-results.pkl
 early_stopping_rounds: 100
 num_boost_round: 10000
-verbose_eval: 100
+verbose_eval: 500

@@ -53,6 +53,8 @@ def plot_cv_indices(cv, X, n_splits, lw=10):
 train = pd.read_csv("../input/power-usage-predict/train.csv")
 train.head()
 # %%
+train["건물번호"].unique()
+# %%
 n_split = 10
 
 tscv = TimeSeriesSplit(n_splits=n_split, gap=1)

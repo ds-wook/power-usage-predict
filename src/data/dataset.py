@@ -4,13 +4,7 @@ import pandas as pd
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 
-from features.engine import (
-    add_features,
-    add_time_features,
-    categorize_test_features,
-    categorize_train_features,
-    fill_missing_features,
-)
+from features.engine import FeatureEngineering, categorize_test_features, categorize_train_features
 
 
 def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
@@ -26,10 +20,8 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
 
     train = pd.merge(train, building_info, on="building_number", how="left")
 
-    # date time feature 생성
-    train = add_time_features(train)
-    train = add_features(cfg, train)
-    train = fill_missing_features(cfg, train)
+    # feature engineering
+    train = FeatureEngineering(config=cfg, df=train).get_df_preprocessed()
     train = categorize_train_features(cfg, train)
 
     # split train, valid
@@ -66,9 +58,7 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = pd.merge(test, building_info, on="building_number", how="left")
 
     # add feature
-    test = add_time_features(test)
-    test = add_features(cfg, test)
-    test = fill_missing_features(cfg, test)
+    test = FeatureEngineering(config=cfg, df=test).get_df_preprocessed()
     test = categorize_test_features(cfg, test)
 
     test_x = test.drop(columns=[*cfg.features.drop_features])
