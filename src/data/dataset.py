@@ -4,7 +4,7 @@ import pandas as pd
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 
-from features.engine import FeatureEngineering, categorize_test_features, categorize_train_features
+from features.engine import FeatureEngineering
 
 
 def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
@@ -21,8 +21,7 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
     train = pd.merge(train, building_info, on="building_number", how="left")
 
     # feature engineering
-    train = FeatureEngineering(config=cfg, df=train).get_df_preprocessed()
-    train = categorize_train_features(cfg, train)
+    train = FeatureEngineering(config=cfg, df=train).get_train_preprocessed()
 
     # split train, valid
     if cfg.models.name != "n_beats":
@@ -58,8 +57,7 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = pd.merge(test, building_info, on="building_number", how="left")
 
     # add feature
-    test = FeatureEngineering(config=cfg, df=test).get_df_preprocessed()
-    test = categorize_test_features(cfg, test)
+    test = FeatureEngineering(config=cfg, df=test).get_test_preprocessed()
 
     test_x = test.drop(columns=[*cfg.features.drop_features])
 
