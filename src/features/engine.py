@@ -17,7 +17,7 @@ class FeatureEngineering:
         df = self._add_features(df)
         df = self._fill_missing_features(df)
         df = self._add_solar_features(df)
-
+        df = self._add_trend_features(df)
         self.df = df
 
     def get_train_preprocessed(self):
@@ -40,6 +40,12 @@ class FeatureEngineering:
         df["hour"] = df["date_time"].dt.hour
         df["day"] = df["date_time"].dt.day
         df["month"] = df["date_time"].dt.month
+        df["weekofyear"] = df["date_time"].dt.weekofyear
+        df["dayofweek"] = df["date_time"].dt.dayofweek
+        df["is_wknd"] = df["dayofweek"] // 4
+        df["quarter"] = df["date_time"].dt.quarter
+        df["is_month_start"] = df["date_time"].dt.is_month_start.astype(int)
+        df["is_month_end"] = df["date_time"].dt.is_month_end.astype(int)
         df["weekday"] = df["date_time"].dt.weekday
         df["weekend"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
 
@@ -55,13 +61,8 @@ class FeatureEngineering:
         """
         df["total_area"] = np.log1p(df["total_area"])
         df["cooling_area"] = np.log1p(df["cooling_area"])
-        # df["wind_chill"] = (
-        #     35.74
-        #     + 0.6215 * df["temperature"]
-        #     - 35.75 * (df["windspeed"] ** 0.16)
-        #     + 0.4275 * df["temperature"] * (df["windspeed"] ** 0.16)
-        # )
-        weather_features = ["temperature", "rainfall", "windspeed", "humidity"]
+
+        weather_features = ["temperature", "windspeed", "humidity"]
         df_num_agg = df.groupby(["building_number", "day", "month"])[weather_features].agg(["mean"])
         df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
 
@@ -93,6 +94,21 @@ class FeatureEngineering:
 
         df["solarHour"] = (df["hour"] - 12) * 15
         df["solarDec"] = -23.45 * np.cos(np.deg2rad(360 * (df["day"] + 10) / 365))
+
+        return df
+
+    def _add_trend_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Add trend features
+        Args:
+            df: dataframe
+        Returns:
+            dataframe
+        """
+        weather_features = ["temperature", "windspeed", "humidity"]
+
+        for col in tqdm(weather_features, leave=False):
+            df[f"{col}_trend"] = df.groupby(["building_number", "day", "month"])[col].transform(lambda x: x.diff())
 
         return df
 

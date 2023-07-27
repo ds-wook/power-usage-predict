@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from matplotlib.patches import Patch
 from sklearn.model_selection import TimeSeriesSplit
 
@@ -50,10 +51,49 @@ def plot_cv_indices(cv, X, n_splits, lw=10):
 
 # %%
 
-train = pd.read_csv("../input/power-usage-predict/train.csv")
-train.head()
+train_df = pd.read_csv("../input/power-usage-predict/train.csv")
+train_df = train_df.rename(
+    columns={
+        "건물번호": "building_number",
+        "일시": "date_time",
+        "기온(C)": "temperature",
+        "강수량(mm)": "rainfall",
+        "풍속(m/s)": "windspeed",
+        "습도(%)": "humidity",
+        "일조(hr)": "sunshine",
+        "일사(MJ/m2)": "solar_radiation",
+        "전력소비량(kWh)": "power_consumption",
+    }
+)
+train_df.drop("num_date_time", axis=1, inplace=True)
+
+# %%
+train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
+
+# date time feature 생성
+train_df["hour"] = train_df["date_time"].dt.hour
+train_df["day"] = train_df["date_time"].dt.day
+train_df["month"] = train_df["date_time"].dt.month
+train_df["year"] = train_df["date_time"].dt.year
+# %%
+weather_features = ["temperature", "rainfall", "windspeed", "humidity"]
+df_trend_agg = train_df.groupby(["building_number", "day", "month"])[weather_features].transform(lambda x: x.diff())
+
+df_trend_agg
 
 
+# %%
+
+
+plt.figure(figsize=(10, 6))
+sns.histplot(np.log1p(train_df["power_consumption"]), bins=30, kde=True)
+plt.title("Distribution of Power Consumption")
+plt.xlabel("Power Consumption")
+plt.ylabel("Frequency")
+plt.show()
+
+
+# %%
 def map_date_index(date, min_date):
     return (date - min_date).days
 
@@ -85,80 +125,9 @@ train = pd.merge(train, building_info, on="건물번호")
 train.head()
 # %%
 train["태양광용량(kW)"].value_counts()
-# %%
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-sns.distplot(np.log1p(train["강수량(mm)"]))
-# %%
-import flash
-import pandas as pd  # noqa: E402
-import torch
-from flash.tabular.forecasting import TabularForecaster, TabularForecastingData
-from pytorch_forecasting.data import NaNLabelEncoder  # noqa: E402
-from pytorch_forecasting.data.examples import generate_ar_data  # noqa: E402
 
 # %%
-# Example based on this tutorial: https://pytorch-forecasting.readthedocs.io/en/latest/tutorials/ar.html
-# 1. Create the DataModule
-data = generate_ar_data(seasonality=10.0, timesteps=400, n_series=100, seed=42)
-data.head()
+train_df["date_time"]
 # %%
-data["date"] = pd.Timestamp("2020-01-01") + pd.to_timedelta(data.time_idx, "D")
-
-max_encoder_length = 60
-max_prediction_length = 20
-
-training_cutoff = data["time_idx"].max() - max_prediction_length
-
-print(training_cutoff)
-data.head()
+sns.lineplot(x="date_time", y="power_consumption", data=train_df)
 # %%
-data["time_idx"].unique().shape
-
-# %%
-data["date"].unique().shape
-# %%
-datamodule = TabularForecastingData.from_data_frame(
-    time_idx="time_idx",
-    target="value",
-    categorical_encoders={"series": NaNLabelEncoder().fit(data.series)},
-    group_ids=["series"],
-    # only unknown variable is "value" - and N-Beats can also not take any additional variables
-    time_varying_unknown_reals=["value"],
-    max_encoder_length=max_encoder_length,
-    max_prediction_length=max_prediction_length,
-    train_data_frame=data[lambda x: x.time_idx <= training_cutoff],
-    # validate on the last sequence
-    val_data_frame=data[lambda x: x.time_idx > training_cutoff - max_encoder_length],
-    batch_size=32,
-)
-# %%
-# 2. Build the task
-model = TabularForecaster(
-    datamodule.parameters,
-    backbone="n_beats",
-    backbone_kwargs={"widths": [32, 512], "backcast_loss_ratio": 0.1},
-)
-# %%
-# 3. Create the trainer and train the model
-trainer = flash.Trainer(max_epochs=1, gpus=torch.cuda.device_count(), gradient_clip_val=0.01)
-trainer.fit(model, datamodule=datamodule)
-
-# 4. Generate predictions
-datamodule = TabularForecastingData.from_data_frame(
-    predict_data_frame=data[lambda x: x.time_idx > training_cutoff - max_encoder_length],
-    parameters=datamodule.parameters,
-    batch_size=32,
-)
-predictions = trainer.predict(model, datamodule=datamodule)
-print(predictions)
-
-# %%
-predictions = [prediction[0]["prediction"].cpu().detach().numpy() for prediction in predictions]
-
-print(predictions)
-# %%
-from itertools import chain
-
-list(chain(*predictions))

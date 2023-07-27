@@ -94,6 +94,8 @@ class BaseModel(metaclass=ABCMeta):
                 else model.predict(x_valid)
             )
 
+            models[f"fold_{fold}"] = model
+
             del x_train, y_train, x_valid, y_valid, model
             gc.collect()
 

@@ -1,6 +1,6 @@
 params:
   objective: tweedie
-  learning_rate: 0.05
+  learning_rate: 0.02
   num_leaves: 100
   max_depth: 10
   min_data_in_leaf: 100
@@ -12,7 +12,7 @@ params:
   verbose: -1
 path: res/models/
 name: lightgbm
-results: 5fold-lightgbm-results.pkl
+results: 5fold-lightgbm-log-results.pkl
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 500
