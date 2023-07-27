@@ -14,6 +14,21 @@ from evaluation.metrics import smape
 from models.base import BaseModel
 
 
+class CatBoostEvalMetric:
+    def get_final_error(self, error: np.ndarray, weight: np.ndarray) -> np.ndarray:
+        return error
+
+    def is_max_optimal(self) -> bool:
+        return False
+
+    def evaluate(self, approxes: np.ndarray, target: np.ndarray, weight: np.ndarray) -> tuple[float, int]:
+        assert len(approxes) == 1
+        assert len(target) == len(approxes[0])
+        preds = np.array(approxes[0])
+        target = np.array(target)
+        return smape(np.array(preds), np.array(target)), 0
+
+
 class LightGBMTrainer(BaseModel):
     def __init__(self, config: DictConfig):
         super().__init__(config)
@@ -37,6 +52,8 @@ class LightGBMTrainer(BaseModel):
             ],
         )
 
+        wandb_lgb.log_summary(model)
+
         return model
 
     def _evaluation(self, preds: pd.Series | np.ndarray, train_data: lgb.Dataset) -> tuple[str, float, bool]:
@@ -56,19 +73,21 @@ class CatBoostTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
     ) -> CatBoostRegressor:
-        train_set = Pool(X_train, y_train, cat_features=self.config.features.cat_features)
-        valid_set = Pool(X_valid, y_valid, cat_features=self.config.features.cat_features)
+        train_set = Pool(X_train, y_train, cat_features=self.config.features.categorical_features)
+        valid_set = Pool(X_valid, y_valid, cat_features=self.config.features.categorical_features)
 
-        model = CatBoostRegressor(random_state=self.config.models.seed, **self.config.models.params)
+        model = CatBoostRegressor(
+            random_state=self.config.models.seed,
+            **self.config.models.params,
+            cat_features=self.config.features.categorical_features,
+        )
 
         model.fit(
             train_set,
             eval_set=valid_set,
             verbose_eval=self.config.models.verbose_eval,
             early_stopping_rounds=self.config.models.early_stopping_rounds,
-            callbacks=[wandb_cb.WandbCallback()]
-            if self.config.models.params.task_type == "CPU" and self.config.log.experiment
-            else None,
+            callbacks=wandb_cb.WandbCallback() if self.config.models.params.task_type == "CPU" else None,
         )
 
         return model

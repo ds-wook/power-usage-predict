@@ -9,7 +9,11 @@ from torch.utils.data import DataLoader, Dataset
 from features.engine import FeatureEngineering
 
 
-def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
+def map_date_index(date: pd.DatetimeIndex, min_date: int) -> int:
+    return (date - min_date).days
+
+
+def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series] | pd.DataFrame:
     train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
 
@@ -37,10 +41,11 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series]:
         y_valid = valid_x[cfg.data.target]
 
     else:
-        train_x = train[train["date_time"] < cfg.data.split_date]
-        valid_x = train[train["date_time"] >= cfg.data.split_date]
+        min_date = train["date_time"].min()
+        train["time_idx"] = train["date_time"].map(lambda date: map_date_index(date, min_date))
+        train = train.drop(columns=[*cfg.features.drop_features])
 
-        return train_x, valid_x
+        return train
 
     return X_train, y_train, X_valid, y_valid
 

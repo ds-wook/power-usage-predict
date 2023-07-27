@@ -15,7 +15,7 @@ import wandb
 import xgboost as xgb
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
-from sklearn.model_selection import TimeSeriesSplit
+from sklearn.model_selection import KFold
 
 from evaluation.metrics import smape
 
@@ -72,11 +72,10 @@ class BaseModel(metaclass=ABCMeta):
 
     def train_cross_validation(self, train_x: pd.DataFrame, train_y: pd.Series) -> BaseModel:
         models = dict()
-        tscv = TimeSeriesSplit(n_splits=self.config.data.n_splits)
+        tscv = KFold(n_splits=self.config.data.n_splits)
         oof_preds = np.zeros(train_x.shape[0])
 
-        for fold, (train_idx, valid_idx) in enumerate(tscv.split(train_x, groups=train_x["building_number"]), 1):
-            self._num_fold_iter = fold
+        for fold, (train_idx, valid_idx) in enumerate(tscv.split(train_x), 1):
             x_train, y_train = train_x.iloc[train_idx], train_y.iloc[train_idx]
             x_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]
             wandb.init(

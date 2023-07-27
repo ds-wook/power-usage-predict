@@ -55,7 +55,12 @@ class FeatureEngineering:
         """
         df["total_area"] = np.log1p(df["total_area"])
         df["cooling_area"] = np.log1p(df["cooling_area"])
-
+        # df["wind_chill"] = (
+        #     35.74
+        #     + 0.6215 * df["temperature"]
+        #     - 35.75 * (df["windspeed"] ** 0.16)
+        #     + 0.4275 * df["temperature"] * (df["windspeed"] ** 0.16)
+        # )
         weather_features = ["temperature", "rainfall", "windspeed", "humidity"]
         df_num_agg = df.groupby(["building_number", "day", "month"])[weather_features].agg(["mean"])
         df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
@@ -72,7 +77,6 @@ class FeatureEngineering:
         Returns:
             dataframe
         """
-
         for col in tqdm(["rainfall", "windspeed", "humidity"], leave=False):
             df[col] = df[col].fillna(df.groupby("building_number")[col].transform("mean"))
 

@@ -52,8 +52,18 @@ def plot_cv_indices(cv, X, n_splits, lw=10):
 
 train = pd.read_csv("../input/power-usage-predict/train.csv")
 train.head()
+
+
+def map_date_index(date, min_date):
+    return (date - min_date).days
+
+
+train["일시"] = pd.to_datetime(train["일시"])
+min_date = train["일시"].min()
+
+train["time_idx"] = train["일시"].map(lambda date: map_date_index(date, min_date))
 # %%
-train["건물번호"].unique()
+train["time_idx"].unique()
 # %%
 n_split = 10
 
@@ -92,6 +102,8 @@ from pytorch_forecasting.data.examples import generate_ar_data  # noqa: E402
 # Example based on this tutorial: https://pytorch-forecasting.readthedocs.io/en/latest/tutorials/ar.html
 # 1. Create the DataModule
 data = generate_ar_data(seasonality=10.0, timesteps=400, n_series=100, seed=42)
+data.head()
+# %%
 data["date"] = pd.Timestamp("2020-01-01") + pd.to_timedelta(data.time_idx, "D")
 
 max_encoder_length = 60
@@ -102,10 +114,10 @@ training_cutoff = data["time_idx"].max() - max_prediction_length
 print(training_cutoff)
 data.head()
 # %%
-data["time_idx"].unique()
+data["time_idx"].unique().shape
 
 # %%
-data.shape
+data["date"].unique().shape
 # %%
 datamodule = TabularForecastingData.from_data_frame(
     time_idx="time_idx",

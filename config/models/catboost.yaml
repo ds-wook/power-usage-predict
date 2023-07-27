@@ -1,0 +1,19 @@
+params:
+  task_type: CPU
+  loss_function: RMSE
+  eval_metric: SMAPE
+  learning_rate: 0.02
+  l2_leaf_reg: 0.3
+  bagging_temperature: 1
+  min_data_in_leaf: 57
+  max_bin: 494
+  od_type: Iter
+  od_wait: 500
+  iterations: 10000
+  allow_writing_files: False
+path: res/models/
+name: catboost
+results: 5fold-catboost-results.pkl
+early_stopping_rounds: 100
+seed: 42
+verbose_eval: 500

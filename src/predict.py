@@ -18,8 +18,11 @@ def _main(cfg: DictConfig):
     model_path = Path(get_original_cwd()) / cfg.models.path / cfg.models.name
 
     if cfg.models.name == "lightgbm":
-        model = lgb.Booster(model_file=model_path / cfg.models.results)
-        pred = model.predict(test_x)
+        model_half_1 = lgb.Booster(model_file=model_path / f"{cfg.models.results}_half_1.txt")
+        model_half_2 = lgb.Booster(model_file=model_path / f"{cfg.models.results}_half_2.txt")
+        pred = model_half_1.predict(test_x) / 2
+        pred += model_half_2.predict(test_x) / 2
+
         submit["answer"] = pred
         submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 
