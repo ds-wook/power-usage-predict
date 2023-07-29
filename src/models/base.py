@@ -13,9 +13,7 @@ import numpy as np
 import pandas as pd
 import wandb
 import xgboost as xgb
-from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
-from sklearn.model_selection import KFold
 
 from evaluation.metrics import smape
 
@@ -44,14 +42,10 @@ class BaseModel(metaclass=ABCMeta):
     ) -> NoReturn:
         raise NotImplementedError
 
-    def save_model(self):
+    def save_model(self, model_path: Path) -> NoReturn:
         """
         Save model
         """
-        model_path = (
-            Path(get_original_cwd()) / self.config.models.path / self.config.models.name / self.config.models.results
-        )
-
         with open(model_path, "wb") as output:
             pickle.dump(self.result, output, pickle.HIGHEST_PROTOCOL)
 
@@ -70,38 +64,54 @@ class BaseModel(metaclass=ABCMeta):
 
         return model
 
-    def train_cross_validation(self, train_x: pd.DataFrame, train_y: pd.Series) -> BaseModel:
+    def train_cross_validation(self, train: pd.DataFrame) -> BaseModel:
         models = dict()
-        tscv = KFold(n_splits=self.config.data.n_splits)
-        oof_preds = np.zeros(train_x.shape[0])
+        oof_preds = train[["building_number", self.config.data.target]].copy()
+        oof_preds = oof_preds.rename(columns={self.config.data.target: "oof_preds"})
+        y_label = train[self.config.data.target]
 
-        for fold, (train_idx, valid_idx) in enumerate(tscv.split(train_x), 1):
-            x_train, y_train = train_x.iloc[train_idx], train_y.iloc[train_idx]
-            x_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]
-            wandb.init(
-                entity=self.config.log.entity,
-                project=self.config.log.project,
-                name=self.config.log.name + f"-fold-{fold}",
-            )
+        for num in train["building_number"].unique():
+            train_x = train[train["building_number"] == num].reset_index(drop=True)
+            train_y = train_x[self.config.data.target]
+            train_x = train_x.drop(columns=["building_number", self.config.data.target])
+            train_x["fold_num"] = train_x["day"] // 7
+            oof_pred = np.zeros(len(train_x))
 
-            model = self._fit(x_train, y_train, x_valid, y_valid)
+            for fold, idx in enumerate(train_x["fold_num"].unique(), 1):
+                train_idx = train_x[train_x["fold_num"] != idx].index
+                valid_idx = train_x[train_x["fold_num"] == idx].index
+                x_train = train_x.drop(columns=["fold_num"])
 
-            oof_preds[valid_idx] = (
-                model.predict(x_valid)
-                if isinstance(model, lgb.Booster)
-                else model.predict(xgb.DMatrix(x_valid))
-                if isinstance(model, xgb.Booster)
-                else model.predict(x_valid)
-            )
+                X_train, y_train = x_train.loc[train_idx], train_y.loc[train_idx]
+                X_valid, y_valid = x_train.loc[valid_idx], train_y.loc[valid_idx]
 
-            models[f"fold_{fold}"] = model
+                wandb.init(
+                    entity=self.config.log.entity,
+                    project=self.config.log.project,
+                    name=f"building_number-{num}-fold-{fold}",
+                )
 
-            del x_train, y_train, x_valid, y_valid, model
-            gc.collect()
+                model = self._fit(X_train, y_train, X_valid, y_valid)
 
-            wandb.finish()
+                oof_pred[valid_idx] = (
+                    model.predict(X_valid)
+                    if isinstance(model, lgb.Booster)
+                    else model.predict(xgb.DMatrix(X_valid))
+                    if isinstance(model, xgb.Booster)
+                    else model.predict(X_valid)
+                )
+
+                models[f"building_{num}-fold_{fold}"] = model
+
+                del X_train, y_train, X_valid, y_valid, model
+                gc.collect()
+
+                wandb.finish()
+
+            oof_preds.loc[train["building_number"] == num, "oof_preds"] = oof_pred
 
         self.oof_preds = oof_preds
         self.result = ModelResult(oof_preds=oof_preds, models=models)
-        print(smape(train_y, oof_preds))
+        print(smape(y_label, oof_preds["oof_preds"].to_numpy()))
+
         return self

@@ -40,16 +40,26 @@ class FeatureEngineering:
         df["hour"] = df["date_time"].dt.hour
         df["day"] = df["date_time"].dt.day
         df["month"] = df["date_time"].dt.month
-        df["weekofyear"] = df["date_time"].dt.weekofyear
-        df["dayofweek"] = df["date_time"].dt.dayofweek
-        df["is_wknd"] = df["dayofweek"] // 4
-        df["quarter"] = df["date_time"].dt.quarter
-        df["is_month_start"] = df["date_time"].dt.is_month_start.astype(int)
-        df["is_month_end"] = df["date_time"].dt.is_month_end.astype(int)
         df["weekday"] = df["date_time"].dt.weekday
         df["weekend"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
+        df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
+        df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
 
         return df
+
+    # function for feature engineering
+    def _cooling_degree_hour(self, xs: np.ndarray) -> list[float]:
+        """
+        Calculate cooling degree hour
+        Args:
+            xs: temperature
+        Returns:
+            cooling degree hour
+        """
+
+        ys = [np.sum(xs[: (i + 1)] - 26) if i < 11 else np.sum(xs[(i - 11) : (i + 1)] - 26) for i in range(len(xs))]
+
+        return ys
 
     def _add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -61,6 +71,16 @@ class FeatureEngineering:
         """
         df["total_area"] = np.log1p(df["total_area"])
         df["cooling_area"] = np.log1p(df["cooling_area"])
+        df["THI"] = 9 / 5 * df["temperature"] - 0.55 * (1 - df["humidity"] / 100) * (9 / 5 * df["humidity"] - 26) + 32
+
+        cdhs = []
+        for num in df["building_number"].unique().tolist():
+            temp = df[df["building_number"] == num]
+            cdh = self._cooling_degree_hour(temp["temperature"].values)
+            cdhs += cdh
+
+        else:
+            df["CDH"] = cdhs
 
         weather_features = ["temperature", "windspeed", "humidity"]
         df_num_agg = df.groupby(["building_number", "day", "month"])[weather_features].agg(["mean"])

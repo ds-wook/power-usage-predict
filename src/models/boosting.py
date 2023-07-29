@@ -14,21 +14,6 @@ from evaluation.metrics import smape
 from models.base import BaseModel
 
 
-class CatBoostEvalMetric:
-    def get_final_error(self, error: np.ndarray, weight: np.ndarray) -> np.ndarray:
-        return error
-
-    def is_max_optimal(self) -> bool:
-        return False
-
-    def evaluate(self, approxes: np.ndarray, target: np.ndarray, weight: np.ndarray) -> tuple[float, int]:
-        assert len(approxes) == 1
-        assert len(target) == len(approxes[0])
-        preds = np.array(approxes[0])
-        target = np.array(target)
-        return smape(np.array(preds), np.array(target)), 0
-
-
 class LightGBMTrainer(BaseModel):
     def __init__(self, config: DictConfig):
         super().__init__(config)

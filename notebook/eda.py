@@ -68,13 +68,33 @@ train_df = train_df.rename(
 train_df.drop("num_date_time", axis=1, inplace=True)
 
 # %%
-train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
+from tqdm import tqdm
 
-# date time feature 생성
-train_df["hour"] = train_df["date_time"].dt.hour
-train_df["day"] = train_df["date_time"].dt.day
-train_df["month"] = train_df["date_time"].dt.month
-train_df["year"] = train_df["date_time"].dt.year
+# train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
+
+# # date time feature 생성
+# train_df["hour"] = train_df["date_time"].dt.hour
+# train_df["day"] = train_df["date_time"].dt.day
+# train_df["month"] = train_df["date_time"].dt.month
+# train_df["year"] = train_df["date_time"].dt.year
+# power_mean = pd.pivot_table(
+#     train_df, values="power_consumption", index=["building_number", "hour", "day"], aggfunc=np.mean
+# ).reset_index()
+# power_mean.head()
+train_df["time"] = train_df["date_time"].map(lambda x: int(x[8:]))
+train_df["time"].unique()
+# %%
+tqdm.pandas()
+train_df["day_hour_mean"] = train_df.progress_apply(
+    lambda x: power_mean.loc[
+        (power_mean.building_number == x["building_number"])
+        & (power_mean.hour == x["hour"])
+        & (power_mean.day == x["day"]),
+        "power_consumption",
+    ].values[0],
+    axis=1,
+)
+
 # %%
 weather_features = ["temperature", "rainfall", "windspeed", "humidity"]
 df_trend_agg = train_df.groupby(["building_number", "day", "month"])[weather_features].transform(lambda x: x.diff())

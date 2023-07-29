@@ -27,23 +27,23 @@ def _main(cfg: DictConfig):
 
         if cfg.models.name == "lightgbm":
             # load dataset
-            X_train, y_train, X_valid, y_valid = load_train_dataset(cfg)
+            train = load_train_dataset(cfg)
             # train model
             lgb_trainer = LightGBMTrainer(config=cfg)
-            model = lgb_trainer.train(X_train, y_train, X_valid, y_valid)
+            lgb_trainer.train_cross_validation(train)
 
             # save model
-            model.save_model(save_path / cfg.models.results)
+            lgb_trainer.save_model(save_path / cfg.models.results)
 
         elif cfg.models.name == "catboost":
             # load dataset
-            X_train, y_train, X_valid, y_valid = load_train_dataset(cfg)
+            train = load_train_dataset(cfg)
             # train model
-            cat_trainer = CatBoostTrainer(config=cfg)
-            model = cat_trainer.train(X_train, y_train, X_valid, y_valid)
+            cb_trainer = CatBoostTrainer(config=cfg)
+            cb_trainer.train_cross_validation(train)
 
             # save model
-            model.save_model(save_path / cfg.models.results)
+            cb_trainer.save_model(save_path / cfg.models.results)
 
         elif cfg.models.name == "n_beats":
             # load dataset

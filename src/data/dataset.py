@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 import torch
 from hydra.utils import get_original_cwd
@@ -14,7 +13,7 @@ def map_date_index(date: pd.DatetimeIndex, min_date: int) -> int:
     return (date - min_date).days
 
 
-def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series] | pd.DataFrame:
+def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
 
@@ -30,25 +29,15 @@ def load_train_dataset(cfg: DictConfig) -> tuple[pd.DataFrame, pd.Series] | pd.D
     # feature engineering
     train = FeatureEngineering(config=cfg, df=train).get_train_preprocessed()
 
-    # split train, valid
     if cfg.models.name != "n_beats":
-        train_x = train[train["date_time"] < cfg.data.start_date]
-        valid_x = train[((train["date_time"] >= cfg.data.start_date) & (train["date_time"] < cfg.data.end_date))]
-        train_x = train_x.drop(columns=[*cfg.features.drop_features])
-        valid_x = valid_x.drop(columns=[*cfg.features.drop_features])
-        X_train = train_x.drop(columns=[cfg.data.target])
-        y_train = train_x[cfg.data.target]
-        X_valid = valid_x.drop(columns=[cfg.data.target])
-        y_valid = valid_x[cfg.data.target]
+        train = train.drop(columns=[*cfg.features.drop_features])
 
     else:
         min_date = train["date_time"].min()
         train["time_idx"] = train["date_time"].map(lambda date: map_date_index(date, min_date))
         train = train.drop(columns=[*cfg.features.drop_features])
 
-        return train
-
-    return X_train, y_train, X_valid, y_valid
+    return train
 
 
 def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:

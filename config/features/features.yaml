@@ -13,7 +13,6 @@ categorical_features:
   - day
   - weekday
   - building_type
-  - building_number
 numerical_features:
   - temperature
   - rainfall
