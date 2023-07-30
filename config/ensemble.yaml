@@ -9,12 +9,10 @@ defaults:
 
 output:
   path: output
-  name: lightgbm-5tscv-solar-ensemble.csv
+  name: building-cross-validation-lightgbm-ensemble.csv
   submit: sample_submission.csv
 
 ensemble:
-  - lightgbm-2022-08-01-solar.csv
-  - lightgbm-2022-08-05-solar.csv
-  - lightgbm-2022-08-10-solar.csv
-  - lightgbm-2022-08-15-solar.csv
-  - lightgbm-2022-08-20-solar.csv
+  - building-cross-validation-lightgbm-loss.csv
+  - building-cross-validation-lightgbm.csv
+

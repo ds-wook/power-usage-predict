@@ -29,7 +29,7 @@ class LightGBMTrainer(BaseModel):
             valid_sets=[train_set, valid_set],
             params=dict(self.config.models.params),
             num_boost_round=self.config.models.num_boost_round,
-            # fobj=lambda preds, dtrain: self._weighted_mse(preds, dtrain, alpha=1),
+            fobj=lambda preds, dtrain: self._weighted_mse(preds, dtrain, alpha=1),
             feval=self._evaluation,
             callbacks=[
                 wandb_lgb.wandb_callback(),

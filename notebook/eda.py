@@ -68,6 +68,8 @@ train_df = train_df.rename(
 train_df.drop("num_date_time", axis=1, inplace=True)
 
 # %%
+train_df["building_number"].unique()
+# %%
 from tqdm import tqdm
 
 train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")

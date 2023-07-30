@@ -15,12 +15,11 @@ from models.infer import load_model
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
-    path = Path(get_original_cwd()) / cfg.output.path
     test = load_test_dataset(cfg)
     test["answer"] = 0
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     results = load_model(cfg, cfg.models.results)
-    folds = np.unique(test["hour"] % 12).tolist()
+    folds = np.unique((test["day"] // 7) + 1)
 
     if cfg.models.name == "lightgbm":
         for num in tqdm(test["building_number"].unique()):
@@ -33,11 +32,9 @@ def _main(cfg: DictConfig):
                 pred = model.predict(test_x)
                 test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
-    else:
-        raise NotImplementedError
-
     submit["answer"] = test["answer"].to_numpy()
-    submit.to_csv(path / cfg.output.name, index=False)
+
+    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 
 
 if __name__ == "__main__":

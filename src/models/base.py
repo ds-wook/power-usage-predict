@@ -75,7 +75,7 @@ class BaseModel(metaclass=ABCMeta):
             train_x = train[train["building_number"] == num].reset_index(drop=True)
             train_y = train_x[self.config.data.target]
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
-            train_x["fold_num"] = train_x["hour"] % 12
+            train_x["fold_num"] = train_x["day"] // 7
             oof_pred = np.zeros(len(train_x))
 
             for fold, idx in enumerate(train_x["fold_num"].unique(), 1):
