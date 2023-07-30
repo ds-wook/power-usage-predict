@@ -29,6 +29,7 @@ class LightGBMTrainer(BaseModel):
             valid_sets=[train_set, valid_set],
             params=dict(self.config.models.params),
             num_boost_round=self.config.models.num_boost_round,
+            # fobj=lambda preds, dtrain: self._weighted_mse(preds, dtrain, alpha=1),
             feval=self._evaluation,
             callbacks=[
                 wandb_lgb.wandb_callback(),
@@ -40,6 +41,13 @@ class LightGBMTrainer(BaseModel):
         wandb_lgb.log_summary(model)
 
         return model
+
+    def _weighted_mse(self, preds: np.ndarray, dtrain: lgb.Dataset, alpha: int = 1) -> tuple[np.ndarray, np.ndarray]:
+        label = dtrain.get_label()
+        residual = (label - preds).astype("float")
+        grad = np.where(residual > 0, -2 * alpha * residual, -2 * residual)
+        hess = np.where(residual > 0, 2 * alpha, 2.0)
+        return grad, hess
 
     def _evaluation(self, preds: pd.Series | np.ndarray, train_data: lgb.Dataset) -> tuple[str, float, bool]:
         """

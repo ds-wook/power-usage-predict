@@ -10,4 +10,4 @@ defaults:
 output:
   path: output
   submission: sample_submission.csv
-  name: building-cross-validation-lightgbm.csv
+  name: building-cross-validation-lightgbm

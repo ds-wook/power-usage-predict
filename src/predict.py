@@ -15,6 +15,7 @@ from models.infer import load_model
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
+    path = Path(get_original_cwd()) / cfg.output.path
     test = load_test_dataset(cfg)
     test["answer"] = 0
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
@@ -30,13 +31,13 @@ def _main(cfg: DictConfig):
             for fold in folds:
                 model = models[f"building_{num}-fold_{fold}"]
                 pred = model.predict(test_x)
-                test.loc[test["building_number"] == num, "answer"] += pred / 5
+                test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
     else:
         raise NotImplementedError
 
     submit["answer"] = test["answer"].to_numpy()
-    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
+    submit.to_csv(path / cfg.output.name, index=False)
 
 
 if __name__ == "__main__":
