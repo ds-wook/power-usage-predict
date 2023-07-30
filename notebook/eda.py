@@ -70,19 +70,17 @@ train_df.drop("num_date_time", axis=1, inplace=True)
 # %%
 from tqdm import tqdm
 
-# train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
+train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
 
-# # date time feature 생성
-# train_df["hour"] = train_df["date_time"].dt.hour
-# train_df["day"] = train_df["date_time"].dt.day
-# train_df["month"] = train_df["date_time"].dt.month
-# train_df["year"] = train_df["date_time"].dt.year
-# power_mean = pd.pivot_table(
-#     train_df, values="power_consumption", index=["building_number", "hour", "day"], aggfunc=np.mean
-# ).reset_index()
-# power_mean.head()
-train_df["time"] = train_df["date_time"].map(lambda x: int(x[8:]))
-train_df["time"].unique()
+# date time feature 생성
+train_df["hour"] = train_df["date_time"].dt.hour
+train_df["day"] = train_df["date_time"].dt.day
+train_df["month"] = train_df["date_time"].dt.month
+train_df["year"] = train_df["date_time"].dt.year
+
+np.unique(train_df["hour"] % 12)
+# %%
+train_df[train_df["building_number"] == 1].shape
 # %%
 tqdm.pandas()
 train_df["day_hour_mean"] = train_df.progress_apply(
