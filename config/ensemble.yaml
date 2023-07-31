@@ -12,7 +12,10 @@ output:
   name: building-cross-validation-lightgbm-ensemble.csv
   submit: sample_submission.csv
 
-ensemble:
+oofs:
+  - building-cross-validation-lightgbm-loss.pkl
+  - building-cross-validation-lightgbm.pkl
+preds:
   - building-cross-validation-lightgbm-loss.csv
   - building-cross-validation-lightgbm.csv
 

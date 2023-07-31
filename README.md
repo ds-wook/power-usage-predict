@@ -78,8 +78,9 @@ Code execution for the new model is as follows:
    ```
 
 ## Benchmark
-
-![Benchmark](https://user-images.githubusercontent.com/46340424/205429491-521460b6-1f0f-44f8-82c9-264f3f521be0.PNG)
+custom-loss: 6.87163
+tweedie-loss: 6.81181
+str_kf-loss:  
 
 The boosting model has a significant performance difference compared to the NN. Ensemble results also appeared to have a greater impact than other models.
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import gc
-import logging
 import pickle
 import warnings
 from abc import ABCMeta, abstractclassmethod
@@ -12,7 +11,6 @@ from typing import Any, NoReturn
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-import wandb
 import xgboost as xgb
 from omegaconf import DictConfig
 
@@ -60,7 +58,6 @@ class BaseModel(metaclass=ABCMeta):
         """
         Train model
         """
-        wandb.init(entity=self.config.log.entity, project=self.config.log.project, name=self.config.log.name)
         model = self._fit(X_train, y_train, X_valid, y_valid)
 
         return model
@@ -75,22 +72,17 @@ class BaseModel(metaclass=ABCMeta):
             train_x = train[train["building_number"] == num].reset_index(drop=True)
             train_y = train_x[self.config.data.target]
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
-            train_x["fold_num"] = train_x["day"] // 7
+            train_x["fold_num"] = train_x["day"] // self.config.data.n_splits
             oof_pred = np.zeros(len(train_x))
 
             for fold, idx in enumerate(train_x["fold_num"].unique(), 1):
+                print(f"building: {num} fold: {fold}")
                 train_idx = train_x[train_x["fold_num"] != idx].index
                 valid_idx = train_x[train_x["fold_num"] == idx].index
                 x_train = train_x.drop(columns=["fold_num"])
 
                 X_train, y_train = x_train.loc[train_idx], train_y.loc[train_idx]
                 X_valid, y_valid = x_train.loc[valid_idx], train_y.loc[valid_idx]
-
-                wandb.init(
-                    entity=self.config.log.entity,
-                    project=self.config.log.project,
-                    name=f"building_number-{num}-fold-{fold}",
-                )
 
                 model = self._fit(X_train, y_train, X_valid, y_valid)
 
@@ -107,13 +99,11 @@ class BaseModel(metaclass=ABCMeta):
                 del X_train, y_train, X_valid, y_valid, model
                 gc.collect()
 
-                wandb.finish()
-
             oof_preds.loc[train["building_number"] == num, "oof_preds"] = oof_pred
 
         self.oof_preds = oof_preds
         self.result = ModelResult(oof_preds=oof_preds, models=models)
-        logging.info(f"oof score: {smape(y_label, oof_preds['oof_preds'].to_numpy())}")
-        print(smape(y_label, oof_preds["oof_preds"].to_numpy()))
+
+        print(f"OOF Score: {smape(oof_preds['oof_preds'], y_label)}\n")
 
         return self

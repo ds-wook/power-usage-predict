@@ -7,8 +7,7 @@ building_info: building_info.csv
 submit: sample_submission.csv
 start_date: 2022-08-01
 end_date: 2022-09-01
-n_splits: 5
-test_size: 2
+n_splits: 3
 dataset_rename:
   건물번호: building_number
   일시: date_time

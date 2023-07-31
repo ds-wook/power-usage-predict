@@ -82,7 +82,7 @@ train_df["year"] = train_df["date_time"].dt.year
 
 np.unique(train_df["hour"] % 12)
 # %%
-train_df[train_df["building_number"] == 1].shape
+train_df[train_df["building_number"] == 1]
 # %%
 tqdm.pandas()
 train_df["day_hour_mean"] = train_df.progress_apply(

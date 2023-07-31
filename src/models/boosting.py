@@ -1,11 +1,10 @@
 from __future__ import annotations
 
+from functools import partial
+
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
-import wandb.catboost as wandb_cb
-import wandb.lightgbm as wandb_lgb
-import wandb.xgboost as wandb_xgb
 import xgboost as xgb
 from catboost import CatBoostRegressor, Pool
 from omegaconf import DictConfig
@@ -29,16 +28,15 @@ class LightGBMTrainer(BaseModel):
             valid_sets=[train_set, valid_set],
             params=dict(self.config.models.params),
             num_boost_round=self.config.models.num_boost_round,
-            fobj=lambda preds, dtrain: self._weighted_mse(preds, dtrain, alpha=1),
+            fobj=partial(self._weighted_mse, alpha=self.config.models.alpha)
+            if self.config.models.is_custom_loss
+            else None,
             feval=self._evaluation,
             callbacks=[
-                wandb_lgb.wandb_callback(),
                 lgb.log_evaluation(self.config.models.verbose_eval),
                 lgb.early_stopping(self.config.models.early_stopping_rounds),
             ],
         )
-
-        wandb_lgb.log_summary(model)
 
         return model
 
@@ -80,7 +78,6 @@ class CatBoostTrainer(BaseModel):
             eval_set=valid_set,
             verbose_eval=self.config.models.verbose_eval,
             early_stopping_rounds=self.config.models.early_stopping_rounds,
-            callbacks=wandb_cb.WandbCallback() if self.config.models.params.task_type == "CPU" else None,
         )
 
         return model
@@ -104,7 +101,13 @@ class XGBoostTrainer(BaseModel):
             num_boost_round=self.config.models.num_boost_round,
             early_stopping_rounds=self.config.models.early_stopping_rounds,
             verbose_eval=self.config.models.verbose_eval,
-            callbacks=[wandb_xgb.WandbCallback()] if self.config.log.experiment else None,
+            obj=self._weighted_mse if self.config.models.is_custom_loss else None,
         )
 
         return model
+
+    def _weighted_mse(self, preds: np.ndarray, label: np.ndarray, alpha: int = 1) -> tuple[np.ndarray, np.ndarray]:
+        residual = (label - preds).astype("float")
+        grad = np.where(residual > 0, -2 * alpha * residual, -2 * residual)
+        hess = np.where(residual > 0, 2 * alpha, 2.0)
+        return grad, hess
