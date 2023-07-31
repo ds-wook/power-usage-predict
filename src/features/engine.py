@@ -1,17 +1,14 @@
-import pickle
-from pathlib import Path
-
 import numpy as np
 import pandas as pd
-from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
-from sklearn.preprocessing import LabelEncoder
 from tqdm import tqdm
 
+from data.base import Dataset
 
-class FeatureEngineering:
+
+class FeatureEngineering(Dataset):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
-        self.config = config
+        super().__init__(config)
 
         df = self._add_time_features(df)
         df = self._add_features(df)
@@ -21,11 +18,11 @@ class FeatureEngineering:
         self.df = df
 
     def get_train_preprocessed(self):
-        self.df = self._categorize_train_features(self.df)
+        self.df = self.categorize_train_features(self.df)
         return self.df
 
     def get_test_preprocessed(self):
-        self.df = self._categorize_test_features(self.df)
+        self.df = self.categorize_test_features(self.df)
         return self.df
 
     def _add_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
@@ -131,41 +128,3 @@ class FeatureEngineering:
             df[f"{col}_trend"] = df.groupby(["building_number", "day", "month"])[col].transform(lambda x: x.diff())
 
         return df
-
-    def _categorize_train_features(self, train: pd.DataFrame) -> pd.DataFrame:
-        """
-        Categorical encoding
-        Args:
-            config: config
-            train: dataframe
-        Returns:
-            dataframe
-        """
-
-        path = Path(get_original_cwd()) / self.config.data.encoder
-        le = LabelEncoder()
-
-        for cat_feature in tqdm(self.config.features.categorical_features, leave=False):
-            train[cat_feature] = le.fit_transform(train[cat_feature])
-            with open(path / f"{cat_feature}.pkl", "wb") as f:
-                pickle.dump(le, f)
-
-        return train
-
-    def _categorize_test_features(self, test: pd.DataFrame) -> pd.DataFrame:
-        """
-        Categorical encoding
-        Args:
-            config: config
-            test: dataframe
-        Returns:
-            dataframe
-        """
-
-        path = Path(get_original_cwd()) / self.config.data.encoder
-
-        for cat_feature in tqdm(self.config.features.categorical_features, leave=False):
-            le = pickle.load(open(path / f"{cat_feature}.pkl", "rb"))
-            test[cat_feature] = le.transform(test[cat_feature])
-
-        return test

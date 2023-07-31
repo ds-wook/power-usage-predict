@@ -142,7 +142,7 @@ def _main(cfg: DictConfig):
 
                     train_epoch_loss += train_loss.item()
                     train_epoch_smape += train_smape.item()
-                #  Then we validate our model - concept is the same
+
                 with torch.no_grad():
                     val_epoch_loss = 0
                     val_epoch_smape = 0

@@ -20,8 +20,8 @@ class LightGBMTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
     ) -> lgb.Booster:
-        train_set = lgb.Dataset(X_train, y_train)
-        valid_set = lgb.Dataset(X_valid, y_valid)
+        train_set = lgb.Dataset(X_train, y_train, categorical_feature=self.config.features.categorical_features)
+        valid_set = lgb.Dataset(X_valid, y_valid, categorical_feature=self.config.features.categorical_features)
 
         model = lgb.train(
             train_set=train_set,
@@ -92,12 +92,11 @@ class XGBoostTrainer(BaseModel):
     ) -> xgb.Booster:
         dtrain = xgb.DMatrix(X_train, y_train)
         dvalid = xgb.DMatrix(X_valid, y_valid)
-        watchlist = [(dtrain, "train"), (dvalid, "eval")]
 
         model = xgb.train(
             dict(self.config.models.params),
             dtrain=dtrain,
-            evals=watchlist,
+            evals=[(dtrain, "train"), (dvalid, "eval")],
             num_boost_round=self.config.models.num_boost_round,
             early_stopping_rounds=self.config.models.early_stopping_rounds,
             verbose_eval=self.config.models.verbose_eval,

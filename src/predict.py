@@ -5,6 +5,7 @@ from pathlib import Path
 import hydra
 import numpy as np
 import pandas as pd
+import xgboost as xgb
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from tqdm import tqdm
@@ -28,7 +29,7 @@ def _main(cfg: DictConfig):
 
         for fold in folds:
             model = models[f"building_{num}-fold_{fold}"]
-            pred = model.predict(test_x)
+            pred = model.predict(xgb.DMatrix(test_x)) if isinstance(model, xgb.Booster) else model.predict(test_x)
             test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
     submit["answer"] = test["answer"].to_numpy()

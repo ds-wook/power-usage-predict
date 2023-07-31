@@ -10,4 +10,4 @@ defaults:
 output:
   path: output
   submission: sample_submission.csv
-  name: 3day-cross-validation-catboost.csv
+  name: 3day-cross-validation-xgboost.csv
