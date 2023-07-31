@@ -3,10 +3,10 @@ import pandas as pd
 from omegaconf import DictConfig
 from tqdm import tqdm
 
-from data.base import Dataset
+from data.base import BaseDataset
 
 
-class FeatureEngineering(Dataset):
+class FeatureEngineering(BaseDataset):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
 
