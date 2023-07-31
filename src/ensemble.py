@@ -23,7 +23,6 @@ def get_score(weights: np.ndarray, train_idx: list[int], oofs: list[np.ndarray],
         blending += weight * oof[train_idx]
 
     blending += (1 - np.sum(weights)) * oofs[-1][train_idx]
-
     scores = smape(preds[train_idx], blending)
 
     return scores
