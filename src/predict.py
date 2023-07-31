@@ -19,18 +19,17 @@ def _main(cfg: DictConfig):
     test["answer"] = 0
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     results = load_model(cfg, cfg.models.results)
-    folds = np.unique((test["day"] // 7) + 1)
+    folds = np.unique((test["day"] // cfg.data.n_splits) + 1)
 
-    if cfg.models.name == "lightgbm":
-        for num in tqdm(test["building_number"].unique()):
-            test_x = test[test["building_number"] == num].reset_index(drop=True)
-            test_x = test_x.drop(columns=["building_number", "answer"])
-            models = results.models
+    for num in tqdm(test["building_number"].unique()):
+        test_x = test[test["building_number"] == num].reset_index(drop=True)
+        test_x = test_x.drop(columns=["building_number", "answer"])
+        models = results.models
 
-            for fold in folds:
-                model = models[f"building_{num}-fold_{fold}"]
-                pred = model.predict(test_x)
-                test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
+        for fold in folds:
+            model = models[f"building_{num}-fold_{fold}"]
+            pred = model.predict(test_x)
+            test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
     submit["answer"] = test["answer"].to_numpy()
 

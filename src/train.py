@@ -15,7 +15,7 @@ from torchmetrics.functional import symmetric_mean_absolute_percentage_error
 from tqdm import tqdm
 
 from data.dataset import create_data_loader, load_train_dataset
-from models.boosting import CatBoostTrainer, LightGBMTrainer
+from models.boosting import CatBoostTrainer, LightGBMTrainer, XGBoostTrainer
 from models.net import LSTM, EarlyStoppingCallback
 
 
@@ -44,6 +44,16 @@ def _main(cfg: DictConfig):
 
             # save model
             cb_trainer.save_model(save_path / cfg.models.results)
+
+        elif cfg.models.name == "xgboost":
+            # load dataset
+            train = load_train_dataset(cfg)
+            # train model
+            xgb_trainer = XGBoostTrainer(config=cfg)
+            xgb_trainer.train_cross_validation(train)
+
+            # save model
+            xgb_trainer.save_model(save_path / cfg.models.results)
 
         elif cfg.models.name == "n_beats":
             # load dataset

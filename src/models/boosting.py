@@ -90,8 +90,8 @@ class XGBoostTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
     ) -> xgb.Booster:
-        dtrain = xgb.DMatrix(X_train, y_train, enable_categorical=True)
-        dvalid = xgb.DMatrix(X_valid, y_valid, enable_categorical=True)
+        dtrain = xgb.DMatrix(X_train, y_train)
+        dvalid = xgb.DMatrix(X_valid, y_valid)
         watchlist = [(dtrain, "train"), (dvalid, "eval")]
 
         model = xgb.train(
@@ -102,12 +102,23 @@ class XGBoostTrainer(BaseModel):
             early_stopping_rounds=self.config.models.early_stopping_rounds,
             verbose_eval=self.config.models.verbose_eval,
             obj=self._weighted_mse if self.config.models.is_custom_loss else None,
+            feval=self._evaluation,
         )
 
         return model
 
-    def _weighted_mse(self, preds: np.ndarray, label: np.ndarray, alpha: int = 1) -> tuple[np.ndarray, np.ndarray]:
+    def _weighted_mse(self, preds: np.ndarray, label: xgb.DMatrix, alpha: int = 1) -> tuple[np.ndarray, np.ndarray]:
+        label = label.get_label()
         residual = (label - preds).astype("float")
         grad = np.where(residual > 0, -2 * alpha * residual, -2 * residual)
         hess = np.where(residual > 0, 2 * alpha, 2.0)
         return grad, hess
+
+    def _evaluation(self, preds: pd.Series | np.ndarray, train_data: xgb.DMatrix) -> tuple[str, float]:
+        """
+        Custom Evaluation Function for LGBM
+        """
+        labels = train_data.get_label()
+        smape_val = smape(preds, labels)
+
+        return "SMAPE", smape_val
