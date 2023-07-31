@@ -6,17 +6,13 @@ from pathlib import Path
 import flash
 import hydra
 import torch
-import torch.nn as nn
 from flash.tabular.forecasting import TabularForecaster, TabularForecastingData
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from pytorch_forecasting.data import NaNLabelEncoder
-from torchmetrics.functional import symmetric_mean_absolute_percentage_error
-from tqdm import tqdm
 
-from data.dataset import create_data_loader, load_train_dataset
+from data.dataset import load_train_dataset
 from models.boosting import CatBoostTrainer, LightGBMTrainer, XGBoostTrainer
-from models.net import LSTM, EarlyStoppingCallback
 
 
 @hydra.main(config_path="../config/", config_name="train")
@@ -94,90 +90,6 @@ def _main(cfg: DictConfig):
             trainer.fit(model, datamodule=datamodule)
             # 5. Save the model!
             trainer.save_checkpoint(save_path / cfg.models.results)
-
-        elif cfg.models.name == "lstm":
-            X_train, y_train, X_valid, y_valid = load_train_dataset(cfg)
-            X_train = X_train.fillna(0)
-            X_valid = X_valid.fillna(0)
-            train_loader = create_data_loader(X_train.to_numpy(), cfg.models.window_size, cfg.models.batch_size)
-            valid_loader = create_data_loader(X_valid.to_numpy(), cfg.models.window_size, cfg.models.batch_size)
-            loss_stat = {"train": [], "validation": []}
-            early_stopping_callback = EarlyStoppingCallback(0.001, cfg.models.patience)
-
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-            model = LSTM(
-                input_size=cfg.models.input_size,
-                hidden_size=cfg.models.hidden_size,
-                num_layers=cfg.models.num_layers,
-                output_size=cfg.models.output_size,
-            )
-            criterion = nn.MSELoss()
-            optimizer = torch.optim.Adam(model.parameters(), lr=cfg.models.lr)
-            model.to(device)
-
-            for progress in tqdm(range(1, cfg.models.num_epochs + 1), leave=False):
-                train_epoch_loss = 0
-                train_epoch_smape = 0
-                model.train()
-
-                # We loop over training dataset using batches (we use DataLoader to load data with batches)
-                for X_train_batch, y_train_batch in train_loader:
-                    X_train_batch, y_train_batch = X_train_batch.to(device), y_train_batch.to(device)
-
-                    # Clear gradients
-                    optimizer.zero_grad()
-
-                    # Forward pass ->>>>
-                    y_train_pred = model(X_train_batch)
-
-                    # Find Loss and backpropagation of gradients
-                    train_loss = criterion(y_train_pred, y_train_batch)
-                    train_smape = symmetric_mean_absolute_percentage_error(y_train_pred.squeeze(), y_train_batch)
-                    # backward <-------
-                    train_loss.backward()
-
-                    # Update the parameters (weights and biases)
-                    optimizer.step()
-
-                    train_epoch_loss += train_loss.item()
-                    train_epoch_smape += train_smape.item()
-
-                with torch.no_grad():
-                    val_epoch_loss = 0
-                    val_epoch_smape = 0
-                    model.eval()
-
-                    for X_val_batch, y_val_batch in valid_loader:
-                        X_val_batch, y_val_batch = X_val_batch.to(device), y_val_batch.to(device)
-
-                        y_val_pred = model(X_val_batch)
-
-                        val_loss = criterion(y_val_pred, y_val_batch)
-                        val_smape = symmetric_mean_absolute_percentage_error(y_val_pred.squeeze(), y_val_batch)
-
-                        val_epoch_loss += val_loss.item()
-                        val_epoch_smape += val_smape.item()
-
-                    # end of validation loop
-                    early_stopping_callback(val_epoch_loss / len(valid_loader))
-
-                    if early_stopping_callback.stop_training:
-                        break
-
-                    loss_stat["train"].append(train_epoch_loss / len(train_loader))
-                    loss_stat["validation"].append(val_epoch_loss / len(valid_loader))
-
-                print(
-                    f"Epoch {progress} train loss: {train_epoch_loss / len(train_loader)}"
-                    + f" train smape: {train_epoch_smape}"
-                )
-                print(
-                    f"Epoch {progress} validation loss: {val_epoch_loss / len(valid_loader)}"
-                    + f" validation smape: {val_epoch_smape}"
-                )
-
-            torch.save(model.state_dict(), save_path / cfg.models.results)
 
         else:
             raise NotImplementedError
