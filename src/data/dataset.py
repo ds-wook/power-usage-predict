@@ -31,8 +31,9 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
         train = train.drop(columns=[*cfg.features.drop_features])
 
     else:
-        min_date = train["date_time"].min()
-        train["time_idx"] = train["date_time"].map(lambda date: map_date_index(date, min_date))
+        train["time_idx"] = (
+            (train.loc[:, "date_time"] - train.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
+        )
         train = train.drop(columns=[*cfg.features.drop_features])
 
     return train

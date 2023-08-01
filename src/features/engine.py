@@ -126,5 +126,6 @@ class FeatureEngineering(BaseDataset):
 
         for col in tqdm(weather_features, leave=False):
             df[f"{col}_trend"] = df.groupby(["building_number", "day", "month"])[col].transform(lambda x: x.diff())
+            df[f"{col}_trend"] = df[f"{col}_trend"].fillna(0)
 
         return df

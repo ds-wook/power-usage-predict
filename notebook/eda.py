@@ -68,12 +68,17 @@ train_df = train_df.rename(
 train_df.drop("num_date_time", axis=1, inplace=True)
 
 # %%
-train_df["building_number"].unique()
-# %%
-from tqdm import tqdm
 
 train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
+# add time index feature
+train_df["time_idx"] = (
+    (train_df.loc[:, "date_time"] - train_df.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
+)
 
+
+# %%
+print(train_df["time_idx"].unique())
+# %%
 # date time feature 생성
 train_df["hour"] = train_df["date_time"].dt.hour
 train_df["day"] = train_df["date_time"].dt.day

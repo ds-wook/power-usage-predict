@@ -5,7 +5,6 @@ params:
   alpha: 0.01
   lambda: 0.01
   seed: 42
-  tree_method: gpu_hist
   objective: reg:squarederror
   n_jobs: -1
 multi_task: False
@@ -15,5 +14,5 @@ results: 2day-cross-validation-xgboost.pkl
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 100
-alpha: 100
+alpha: 1
 is_custom_loss: True

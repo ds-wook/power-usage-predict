@@ -102,7 +102,9 @@ class XGBoostTrainer(BaseModel):
             num_boost_round=self.config.models.num_boost_round,
             early_stopping_rounds=self.config.models.early_stopping_rounds,
             verbose_eval=self.config.models.verbose_eval,
-            obj=self._weighted_mse if self.config.models.is_custom_loss else None,
+            obj=partial(self._weighted_mse, alpha=self.config.models.alpha)
+            if self.config.models.is_custom_loss
+            else None,
             feval=self._evaluation,
         )
 
@@ -132,12 +134,7 @@ class LinearBoostingTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
     ) -> LinearBoostRegressor:
-        model = LinearBoostRegressor(
-            base_estimator=LinearRegression(),
-            n_estimators=self.config.models.n_estimators,
-            max_depth=self.config.models.max_depth,
-            random_state=self.config.models.seed,
-        )
+        model = LinearBoostRegressor(base_estimator=LinearRegression(), random_state=self.config.models.seed)
 
         model.fit(X_train, y_train)
         preds = model.predict(X_valid)
