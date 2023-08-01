@@ -11,7 +11,7 @@ params:
   od_wait: 500
   iterations: 10000
   allow_writing_files: False
-  used_ram_limit: 10gb
+  used_ram_limit: 20gb
 path: res/models/
 name: catboost
 results: 2day-cross-validation-catboost.pkl

@@ -34,7 +34,7 @@ def get_best_weights(oofs: np.ndarray, preds: np.ndarray) -> float:
     weight_list = []
 
     kf = KFold(n_splits=5)
-    for fold, (train_idx, _) in enumerate(kf.split(oofs[0])):
+    for fold, (train_idx, _) in enumerate(kf.split(oofs[0]), 1):
         res = minimize(get_score, weights, args=(train_idx, oofs, preds), method="Nelder-Mead", tol=1e-6)
         print(f"fold: {fold} res.x: {res.x}")
         weight_list.append(res.x)

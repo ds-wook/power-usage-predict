@@ -9,7 +9,7 @@ defaults:
 
 output:
   path: output
-  name: 3day-cross-validation-ensemble.csv
+  name: 2day-cross-validation-ensemble.csv
   submit: sample_submission.csv
 
 oofs:
