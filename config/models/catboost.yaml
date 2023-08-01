@@ -13,7 +13,7 @@ params:
   allow_writing_files: False
 path: res/models/
 name: catboost
-results: 3day-cross-validation-catboost.pkl
+results: 2day-cross-validation-catboost.pkl
 early_stopping_rounds: 100
 seed: 42
 verbose_eval: 100

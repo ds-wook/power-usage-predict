@@ -12,14 +12,14 @@ from omegaconf import DictConfig
 from pytorch_forecasting.data import NaNLabelEncoder
 
 from data.dataset import load_train_dataset
-from models.boosting import CatBoostTrainer, LightGBMTrainer, XGBoostTrainer
+from models.boosting import CatBoostTrainer, LightGBMTrainer, LinearBoostingTrainer, XGBoostTrainer
 
 
 @hydra.main(config_path="../config/", config_name="train")
 def _main(cfg: DictConfig):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=UserWarning)
-        save_path = Path(get_original_cwd()) / cfg.models.path / cfg.models.name
+        save_path = Path(get_original_cwd()) / cfg.models.path
 
         if cfg.models.name == "lightgbm":
             # load dataset
@@ -50,6 +50,16 @@ def _main(cfg: DictConfig):
 
             # save model
             xgb_trainer.save_model(save_path / cfg.models.results)
+
+        elif cfg.models.name == "linearboosting":
+            # load dataset
+            train = load_train_dataset(cfg)
+            # train model
+            lb_trainer = LinearBoostingTrainer(config=cfg)
+            lb_trainer.train_cross_validation(train)
+
+            # save model
+            lb_trainer.save_model(save_path / cfg.models.results)
 
         elif cfg.models.name == "n_beats":
             # load dataset

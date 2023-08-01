@@ -7,7 +7,9 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostRegressor, Pool
+from lineartree import LinearBoostRegressor
 from omegaconf import DictConfig
+from sklearn.linear_model import LinearRegression
 
 from evaluation.metrics import smape
 from models.base import BaseModel
@@ -90,8 +92,8 @@ class XGBoostTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
     ) -> xgb.Booster:
-        dtrain = xgb.DMatrix(X_train, y_train)
-        dvalid = xgb.DMatrix(X_valid, y_valid)
+        dtrain = xgb.DMatrix(X_train, y_train, enable_categorical=True)
+        dvalid = xgb.DMatrix(X_valid, y_valid, enable_categorical=True)
 
         model = xgb.train(
             dict(self.config.models.params),
@@ -121,3 +123,24 @@ class XGBoostTrainer(BaseModel):
         smape_val = smape(preds, labels)
 
         return "SMAPE", smape_val
+
+
+class LinearBoostingTrainer(BaseModel):
+    def __init__(self, config: DictConfig):
+        super().__init__(config)
+
+    def _fit(
+        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
+    ) -> LinearBoostRegressor:
+        model = LinearBoostRegressor(
+            base_estimator=LinearRegression(),
+            n_estimators=self.config.models.n_estimators,
+            max_depth=self.config.models.max_depth,
+            random_state=self.config.models.seed,
+        )
+
+        model.fit(X_train, y_train)
+        preds = model.predict(X_valid)
+        print(f"Validation SMAPE: {smape(preds, y_valid)}")
+
+        return model
