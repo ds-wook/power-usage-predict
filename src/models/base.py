@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from omegaconf import DictConfig
+from pytorch_tabnet.tab_model import TabNetRegressor
 
 from evaluation.metrics import smape
 
@@ -91,6 +92,8 @@ class BaseModel(metaclass=ABCMeta):
                     if isinstance(model, lgb.Booster)
                     else model.predict(xgb.DMatrix(X_valid))
                     if isinstance(model, xgb.Booster)
+                    else model.predict(X_valid.to_numpy()).reshape(-1)
+                    if isinstance(model, TabNetRegressor)
                     else model.predict(X_valid)
                 )
 

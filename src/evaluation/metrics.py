@@ -1,6 +1,7 @@
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
+from pytorch_tabnet.metrics import Metric
 
 
 def smape(preds: pd.Series | np.ndarray, target: pd.Series | np.ndarray) -> float:
@@ -18,3 +19,12 @@ def lgbm_smape(self, preds: pd.Series | np.ndarray, train_data: lgb.Dataset) -> 
     smape_val = smape(preds, labels)
 
     return "SMAPE", smape_val, False
+
+
+class SMAPE(Metric):
+    def __init__(self):
+        self._name = "smape"
+        self._maximize = False
+
+    def __call__(self, y_true, y_pred):
+        return smape(y_pred, y_true)

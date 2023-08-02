@@ -8,6 +8,6 @@ params:
   optimizer: adamax
 max_epochs: 5
 batch_size: 64
-max_encoder_length: 86
-max_prediction_length: 1
+max_encoder_length: 840
+max_prediction_length: 168
 gradient_clip_val: 0.01

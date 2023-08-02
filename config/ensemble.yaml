@@ -9,14 +9,14 @@ defaults:
 
 output:
   path: output
-  name: 2day-cross-validation-ensemble.csv
+  name: 1day-cross-validation-tree-ensemble.csv
   submit: sample_submission.csv
 
 oofs:
-  - 2day-cross-validation-xgboost.pkl
-  - 2day-cross-validation-lightgbm.pkl
-  - 2day-cross-validation-catboost.pkl
+  - 1day-cross-validation-xgboost.pkl
+  - 1day-cross-validation-catboost.pkl
+  - 1day-cross-validation-lightgbm.pkl
 preds:
-  - 2day-cross-validation-xgboost.csv
-  - 2day-cross-validation-lightgbm.csv
-  - 2day-cross-validation-catboost.csv
+  - 1day-cross-validation-xgboost.csv
+  - 1day-cross-validation-catboost.csv
+  - 1day-cross-validation-lightgbm.csv

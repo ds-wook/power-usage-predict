@@ -7,10 +7,6 @@ from omegaconf import DictConfig
 from features.engine import FeatureEngineering
 
 
-def map_date_index(date: pd.DatetimeIndex, min_date: int) -> int:
-    return (date - min_date).days
-
-
 def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
@@ -27,13 +23,14 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     # feature engineering
     train = FeatureEngineering(config=cfg, df=train).get_train_preprocessed()
 
-    if cfg.models.name != "n_beats":
-        train = train.drop(columns=[*cfg.features.drop_features])
-
-    else:
+    if cfg.models.name == "n_beats":
         train["time_idx"] = (
             (train.loc[:, "date_time"] - train.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
         )
+
+        train = train.drop(columns=["solar_power_capacity", "ess_capacity", "pcs_capacity", "num_date_time"])
+
+    else:
         train = train.drop(columns=[*cfg.features.drop_features])
 
     return train

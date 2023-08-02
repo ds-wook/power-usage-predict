@@ -75,7 +75,6 @@ train_df["time_idx"] = (
     (train_df.loc[:, "date_time"] - train_df.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
 )
 
-
 # %%
 print(train_df["time_idx"].unique())
 # %%
