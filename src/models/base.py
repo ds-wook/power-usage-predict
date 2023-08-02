@@ -29,8 +29,7 @@ class ModelResult:
 class BaseModel(metaclass=ABCMeta):
     def __init__(self, config: DictConfig):
         self.config = config
-        self._num_fold_iter = 0
-        self.oof_preds = None
+        self.result = None
 
     @abstractclassmethod
     def _fit(
