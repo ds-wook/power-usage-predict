@@ -52,6 +52,12 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     # add feature
     test = FeatureEngineering(config=cfg, df=test).get_test_preprocessed()
 
+    if cfg.models.name == "n_beats":
+        test["time_idx"] = (
+            (test.loc[:, "date_time"] - test.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
+        )
+        test["time_idx"] += 2040
+
     test_x = test.drop(columns=[*cfg.features.drop_features])
 
     return test_x

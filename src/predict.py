@@ -19,7 +19,7 @@ def _main(cfg: DictConfig):
     test = load_test_dataset(cfg)
     test["answer"] = 0
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
-    results = load_model(cfg, cfg.models.results)
+    results = load_model(cfg, f"{cfg.models.results}.pkl")
     folds = np.unique((test["day"] // cfg.data.n_splits) + 1)
 
     for num in tqdm(test["building_number"].unique()):
@@ -34,7 +34,7 @@ def _main(cfg: DictConfig):
 
     submit["answer"] = test["answer"].to_numpy()
 
-    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
+    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / f"{cfg.models.results}.csv", index=False)
 
 
 if __name__ == "__main__":

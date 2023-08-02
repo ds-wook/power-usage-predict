@@ -39,6 +39,7 @@ class FeatureEngineering(BaseDataset):
         df["month"] = df["date_time"].dt.month
         df["weekday"] = df["date_time"].dt.weekday
         df["weekend"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
+        df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "weekend"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
 

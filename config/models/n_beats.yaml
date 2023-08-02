@@ -6,7 +6,7 @@ params:
   backbone: n_beats
   lr: 0.02
   optimizer: adamax
-max_epochs: 5
+max_epochs: 2
 batch_size: 64
 max_encoder_length: 840
 max_prediction_length: 168
