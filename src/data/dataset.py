@@ -52,11 +52,11 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = FeatureEngineering(config=cfg, df=test).get_test_pipeline()
 
     if cfg.models.name == "n_beats":
-        test["time_idx"] = (
-            (test.loc[:, "date_time"] - test.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
-        )
+        test["time_idx"] = (test.loc[:, "date_time"] - test.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
         test["time_idx"] += 2040
+        test_x = test.drop(columns=["solar_power_capacity", "ess_capacity", "pcs_capacity", "num_date_time"])
 
-    test_x = test.drop(columns=[*cfg.features.drop_features])
+    else:
+        test_x = test.drop(columns=[*cfg.features.drop_features])
 
     return test_x
