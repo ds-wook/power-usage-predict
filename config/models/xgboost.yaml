@@ -5,7 +5,7 @@ params:
   alpha: 0.01
   lambda: 0.01
   seed: 42
-  objective: reg:squaredlogerror
+  objective: reg:squarederror
   n_jobs: -1
 multi_task: False
 path: res/models/
