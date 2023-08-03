@@ -29,7 +29,6 @@ class ModelResult:
 class BaseModel(metaclass=ABCMeta):
     def __init__(self, config: DictConfig):
         self.config = config
-        self.result = None
 
     @abstractclassmethod
     def _fit(

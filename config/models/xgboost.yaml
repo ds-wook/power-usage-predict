@@ -5,12 +5,12 @@ params:
   alpha: 0.01
   lambda: 0.01
   seed: 42
-  objective: reg:squarederror
+  objective: reg:squaredlogerror
   n_jobs: -1
 multi_task: False
 path: res/models/
 name: xgboost
-results: 1day-cross-validation-xgboost
+results: 2day-cross-validation-xgboost-squaredlogerror
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 100

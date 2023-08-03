@@ -2,12 +2,18 @@ n_splits: 10
 path: res/models/
 name: n_beats
 results: n_beats-results
-params:
-  backbone: n_beats
-  lr: 0.02
-  optimizer: adamax
-max_epochs: 2
+learning_rate: 0.02
+optimizer: adamax
+max_epochs: 100
+gpus: 1
 batch_size: 64
 max_encoder_length: 840
 max_prediction_length: 168
 gradient_clip_val: 0.01
+log_interval: 10
+log_val_interval: 1
+weight_decay: 0.001
+widths:
+  - 32
+  - 512
+backcast_loss_ratio: 1.0

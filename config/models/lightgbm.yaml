@@ -1,5 +1,5 @@
 params:
-  objective: tweedie
+  objective: poisson
   learning_rate: 0.02
   num_leaves: 100
   max_depth: 10
@@ -13,9 +13,9 @@ params:
   n_jobs: -1
 path: res/models/
 name: lightgbm
-results: 1day-cross-validation-lightgbm
+results: 2day-cross-validation-lightgbm
 early_stopping_rounds: 100
 num_boost_round: 10000
-verbose_eval: 100
+verbose_eval: 250
 alpha: 1
-is_custom_loss: True
+is_custom_loss: False
