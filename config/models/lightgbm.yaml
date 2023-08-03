@@ -1,5 +1,5 @@
 params:
-  objective: poisson
+  objective: tweedie
   learning_rate: 0.02
   num_leaves: 100
   max_depth: 10

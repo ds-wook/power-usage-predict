@@ -21,13 +21,12 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     train = pd.merge(train, building_info, on="building_number", how="left")
 
     # feature engineering
-    train = FeatureEngineering(config=cfg, df=train).get_train_preprocessed()
+    train = FeatureEngineering(config=cfg, df=train).get_train_pipeline()
 
     if cfg.models.name == "n_beats":
         train["time_idx"] = (
             (train.loc[:, "date_time"] - train.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
         )
-
         train = train.drop(columns=["solar_power_capacity", "ess_capacity", "pcs_capacity", "num_date_time"])
 
     else:
@@ -50,7 +49,7 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = pd.merge(test, building_info, on="building_number", how="left")
 
     # add feature
-    test = FeatureEngineering(config=cfg, df=test).get_test_preprocessed()
+    test = FeatureEngineering(config=cfg, df=test).get_test_pipeline()
 
     if cfg.models.name == "n_beats":
         test["time_idx"] = (

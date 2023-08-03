@@ -3,10 +3,10 @@ import pandas as pd
 from omegaconf import DictConfig
 from tqdm import tqdm
 
-from data.base import BaseDataset
+from features.base import BaseDataPreprocessor
 
 
-class FeatureEngineering(BaseDataset):
+class FeatureEngineering(BaseDataPreprocessor):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
 
@@ -17,12 +17,12 @@ class FeatureEngineering(BaseDataset):
         df = self._add_trend_features(df)
         self.df = df
 
-    def get_train_preprocessed(self):
-        self.df = self.categorize_train_features(self.df)
+    def get_train_pipeline(self):
+        self.df = self._categorize_train_features(self.df)
         return self.df
 
-    def get_test_preprocessed(self):
-        self.df = self.categorize_test_features(self.df)
+    def get_test_pipeline(self):
+        self.df = self._categorize_test_features(self.df)
         return self.df
 
     def _add_time_features(self, df: pd.DataFrame) -> pd.DataFrame:
