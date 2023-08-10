@@ -10,9 +10,9 @@ params:
 multi_task: False
 path: res/models/
 name: xgboost
-results: 1day-cross-validation-xgboost
+results: 2day-cross-validation-cluster-xgboost
 early_stopping_rounds: 100
 num_boost_round: 10000
-verbose_eval: 100
+verbose_eval: 500
 alpha: 1
 is_custom_loss: True

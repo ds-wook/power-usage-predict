@@ -1,2 +1,4 @@
-python src/train.py 
-python src/predict.py
+for model in xgboost lightgbm catboost; do
+    python src/train.py models=$model
+    python src/predict.py models=$model
+done

@@ -6,6 +6,7 @@ from pathlib import Path
 import hydra
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
+from sklearn.preprocessing import MinMaxScaler
 
 from data.dataset import load_train_dataset
 from models.boosting import CatBoostTrainer, LightGBMTrainer, XGBoostTrainer
@@ -32,7 +33,8 @@ def _main(cfg: DictConfig):
         elif cfg.models.name == "catboost":
             # load dataset
             train = load_train_dataset(cfg)
-
+            print(train["cluster"].value_counts())
+            print(train["cluster"].isna().sum())
             # train model
             cb_trainer = CatBoostTrainer(config=cfg)
             cb_trainer.train_cross_validation(train)
@@ -54,6 +56,14 @@ def _main(cfg: DictConfig):
         elif cfg.models.name == "tabnet":
             # load dataset
             train = load_train_dataset(cfg)
+            train = train.fillna(0)
+            scaler = MinMaxScaler()
+            columns = [
+                c
+                for c in train.columns
+                if c not in [*cfg.features.categorical_features] and c != cfg.data.target and c != "building_number"
+            ]
+            train[columns] = scaler.fit_transform(train[columns])
 
             # train model
             tabnet_trainer = TabNetTrainer(config=cfg)

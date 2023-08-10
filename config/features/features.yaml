@@ -8,11 +8,10 @@ drop_features:
   - num_date_time
   - date_time
 categorical_features:
-  - month
-  - hour
-  - day
-  - weekday
   - building_type
+  - heat_index
+  - cluster
+  - holiday
 numerical_features:
   - temperature
   - rainfall

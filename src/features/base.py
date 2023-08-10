@@ -27,7 +27,7 @@ class BaseDataPreprocessor:
         path = Path(get_original_cwd()) / self.config.data.encoder
         le = LabelEncoder()
 
-        for cat_feature in tqdm(self.config.features.categorical_features, leave=False):
+        for cat_feature in tqdm(self.config.data.categorical_features, leave=False):
             train[cat_feature] = le.fit_transform(train[cat_feature])
             with open(path / f"{cat_feature}.pkl", "wb") as f:
                 pickle.dump(le, f)
@@ -46,7 +46,7 @@ class BaseDataPreprocessor:
 
         path = Path(get_original_cwd()) / self.config.data.encoder
 
-        for cat_feature in tqdm(self.config.features.categorical_features, leave=False):
+        for cat_feature in tqdm(self.config.data.categorical_features, leave=False):
             le = pickle.load(open(path / f"{cat_feature}.pkl", "rb"))
             test[cat_feature] = le.transform(test[cat_feature])
 

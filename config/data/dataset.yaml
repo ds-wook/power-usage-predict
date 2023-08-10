@@ -5,9 +5,7 @@ train: train.csv
 test: test.csv
 building_info: building_info.csv
 submit: sample_submission.csv
-start_date: 2022-08-01
-end_date: 2022-09-01
-n_splits: 1
+n_splits: 2
 dataset_rename:
   건물번호: building_number
   일시: date_time
@@ -39,3 +37,5 @@ building_type_translation:
   지식산업센터: Knowledge Industry Center
   할인마트: Discount Mart
   호텔및리조트: Hotel and Resort
+categorical_features:
+  - building_type

@@ -2,7 +2,6 @@ params:
   objective: tweedie
   learning_rate: 0.02
   num_leaves: 100
-  max_depth: 10
   min_data_in_leaf: 100
   bagging_fraction: 0.8
   feature_fraction: 0.8
@@ -13,7 +12,7 @@ params:
   n_jobs: -1
 path: res/models/
 name: lightgbm
-results: 2day-cross-validation-lightgbm
+results: 2day-cross-validation-cluster-lightgbm
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 250

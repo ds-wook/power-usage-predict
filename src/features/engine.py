@@ -38,7 +38,7 @@ class FeatureEngineering(BaseDataPreprocessor):
         df["day"] = df["date_time"].dt.day
         df["month"] = df["date_time"].dt.month
         df["weekday"] = df["date_time"].dt.weekday
-        df["weekend"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
+        df["holiday"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
         df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "weekend"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
@@ -69,6 +69,25 @@ class FeatureEngineering(BaseDataPreprocessor):
         """
         df["total_area"] = np.log1p(df["total_area"])
         df["cooling_area"] = np.log1p(df["cooling_area"])
+        df["temperature_f"] = 9 / 5 * df["temperature"] + 32
+        df["heat_index"] = (
+            -42.379
+            + 2.04901523 * df["temperature_f"]
+            + 10.14333127 * df["humidity"]
+            - 0.22475541 * df["temperature_f"] * df["humidity"]
+            - 0.00683783 * df["temperature_f"] * df["temperature_f"]
+            - 0.05481717 * df["humidity"] * df["humidity"]
+            + 0.00122874 * df["temperature_f"] * df["temperature_f"] * df["humidity"]
+            + 0.00085282 * df["temperature_f"] * df["humidity"] * df["humidity"]
+            - 0.00000199 * df["temperature_f"] * df["temperature_f"] * df["humidity"] * df["humidity"]
+        )
+        df["heat_index"] = (df["heat_index"] - 32) * 5 / 9
+        df.loc[df["heat_index"] < 32, "heat_index"] = 0
+        df.loc[(df["heat_index"] >= 32) & (df["heat_index"] < 41), "heat_index"] = 1
+        df.loc[(df["heat_index"] >= 41) & (df["heat_index"] < 54), "heat_index"] = 2
+        df.loc[(df["heat_index"] >= 54) & (df["heat_index"] < 66), "heat_index"] = 3
+        df.loc[df["heat_index"] >= 66, "heat_index"] = 4
+
         df["THI"] = 9 / 5 * df["temperature"] - 0.55 * (1 - df["humidity"] / 100) * (9 / 5 * df["humidity"] - 26) + 32
 
         cdhs = []
@@ -79,12 +98,6 @@ class FeatureEngineering(BaseDataPreprocessor):
 
         else:
             df["CDH"] = cdhs
-
-        weather_features = ["temperature", "windspeed", "humidity"]
-        df_num_agg = df.groupby(["building_number", "day", "month"])[weather_features].agg(["mean"])
-        df_num_agg.columns = ["_".join(col) for col in df_num_agg.columns]
-
-        df = pd.merge(df, df_num_agg, on=["building_number", "day", "month"], how="left")
 
         return df
 

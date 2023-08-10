@@ -5,7 +5,6 @@ import torch
 import torch.nn as nn
 from omegaconf import DictConfig
 from pytorch_tabnet.tab_model import TabNetRegressor
-
 from evaluation.metrics import SMAPE
 from models.base import BaseModel
 

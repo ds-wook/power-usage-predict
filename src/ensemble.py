@@ -61,12 +61,12 @@ def _main(cfg: DictConfig):
         preds_list.append(preds["answer"].to_numpy())
 
     best_weights = get_best_weights(oofs_list, target)
-    oof_preds = np.average(oofs_list, weights=best_weights, axis=0)
+    print(f"XGBoost Score: {smape(oofs_list[0], target)}")
+    print(f"LightGBM Score: {smape(oofs_list[1], target)}")
+    print(f"CatBoost Score: {smape(oofs_list[2], target)}")
+
     blending_preds = np.average(preds_list, weights=best_weights, axis=0)
-    print(f"OOF Score: {smape(oof_preds, target)}")
-    print(f"XGB Score: {smape(oofs_list[0], target)}")
-    print(f"CB Score: {smape(oofs_list[1], target)}")
-    print(f"LGB Score: {smape(oofs_list[2], target)}")
+
     submit["answer"] = blending_preds
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 

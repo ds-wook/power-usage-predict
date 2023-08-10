@@ -1,19 +1,20 @@
 n_splits: 10
 path: res/models/
 name: n_beats
-results: n_beats-results
-learning_rate: 0.02
+results: 5weeks-temporal-transformer
+learning_rate: 0.08
 optimizer: adamax
 max_epochs: 100
 gpus: 1
-batch_size: 64
+batch_size: 128
 max_encoder_length: 840
 max_prediction_length: 168
 gradient_clip_val: 0.01
 log_interval: 10
 log_val_interval: 1
 weight_decay: 0.001
-widths:
-  - 32
-  - 512
-backcast_loss_ratio: 1.0
+dropout: 0.19610151695402608
+hidden_size: 180
+hidden_continuous_size: 90
+reduce_on_plateau_patience: 4
+attention_head_size: 4

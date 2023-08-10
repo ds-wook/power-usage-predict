@@ -1,3 +1,4 @@
+import pickle
 from pathlib import Path
 
 import pandas as pd
@@ -21,7 +22,13 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     train = pd.merge(train, building_info, on="building_number", how="left")
 
     # feature engineering
-    train = FeatureEngineering(config=cfg, df=train).get_train_pipeline()
+    feature_engineering = FeatureEngineering(config=cfg, df=train)
+    train = feature_engineering.get_train_pipeline()
+
+    with open(Path(get_original_cwd()) / cfg.data.encoder / "cluster_map.pkl", "rb") as f:
+        cluster_map = pickle.load(f)
+
+    train["cluster"] = train["building_number"].map(cluster_map)
 
     if cfg.models.name == "n_beats":
         train["time_idx"] = (
@@ -49,7 +56,13 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = pd.merge(test, building_info, on="building_number", how="left")
 
     # add feature
-    test = FeatureEngineering(config=cfg, df=test).get_test_pipeline()
+    feature_engineering = FeatureEngineering(config=cfg, df=test)
+    test = feature_engineering.get_test_pipeline()
+
+    with open(Path(get_original_cwd()) / cfg.data.encoder / "cluster_map.pkl", "rb") as f:
+        cluster_map = pickle.load(f)
+
+    test["cluster"] = test["building_number"].map(cluster_map)
 
     if cfg.models.name == "n_beats":
         test["time_idx"] = (test.loc[:, "date_time"] - test.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")

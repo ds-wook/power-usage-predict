@@ -1,5 +1,5 @@
 params:
-  lr: 0.002
+  lr: 0.1
   step_size: 50
   gamma: 1.5
   n_d: 16
@@ -7,7 +7,7 @@ params:
   n_a: 16
   lambda_sparse: 0.0001
   max_epochs: 1000
-  patience: 20
+  patience: 100
   batch_size: 4096
   virtual_batch_size: 128
   num_workers: 1
@@ -22,3 +22,4 @@ eval_metric:
 path: res/models/
 name: tabnet
 results: 2day-cross-validation-tabnet
+teacher: 2day-cross-validation-xgboost

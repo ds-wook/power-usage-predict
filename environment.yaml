@@ -4,9 +4,12 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
+  - pip
   - python=3.10.11
   - pip:
-    - black==22.8.0
+    - black
+    - flake8
+    - isort
     - catboost==1.2
     - category-encoders==2.2.2
     - hydra-core==1.1.0
