@@ -10,9 +10,9 @@ class FeatureEngineering(BaseDataPreprocessor):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
 
+        df = self._fill_missing_features(df)
         df = self._add_time_features(df)
         df = self._add_features(df)
-        df = self._fill_missing_features(df)
         df = self._add_solar_features(df)
         df = self._add_trend_features(df)
         self.df = df
@@ -39,7 +39,7 @@ class FeatureEngineering(BaseDataPreprocessor):
         df["month"] = df["date_time"].dt.month
         df["weekday"] = df["date_time"].dt.weekday
         df["holiday"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
-        df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "weekend"] = 1
+        df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "holiday"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
 
@@ -88,6 +88,7 @@ class FeatureEngineering(BaseDataPreprocessor):
         df.loc[(df["heat_index"] >= 54) & (df["heat_index"] < 66), "heat_index"] = 3
         df.loc[df["heat_index"] >= 66, "heat_index"] = 4
 
+        df["heat_index"] = df["heat_index"].astype(int)
         df["THI"] = 9 / 5 * df["temperature"] - 0.55 * (1 - df["humidity"] / 100) * (9 / 5 * df["humidity"] - 26) + 32
 
         cdhs = []
@@ -166,21 +167,21 @@ class FeatureEngineering(BaseDataPreprocessor):
             axis=1,
         )
 
-        df["hour_mean"] = df.progress_apply(
-            lambda x: power_hour_mean.loc[
-                (power_hour_mean.building_number == x["building_number"]) & (power_hour_mean.hour == x["hour"]),
-                "power_consumption",
-            ].values[0],
-            axis=1,
-        )
+        # df["hour_mean"] = df.progress_apply(
+        #     lambda x: power_hour_mean.loc[
+        #         (power_hour_mean.building_number == x["building_number"]) & (power_hour_mean.hour == x["hour"]),
+        #         "power_consumption",
+        #     ].values[0],
+        #     axis=1,
+        # )
 
-        tqdm.pandas()
-        df["hour_std"] = df.progress_apply(
-            lambda x: power_hour_std.loc[
-                (power_hour_std.building_number == x["building_number"]) & (power_hour_std.hour == x["hour"]),
-                "power_consumption",
-            ].values[0],
-            axis=1,
-        )
+        # tqdm.pandas()
+        # df["hour_std"] = df.progress_apply(
+        #     lambda x: power_hour_std.loc[
+        #         (power_hour_std.building_number == x["building_number"]) & (power_hour_std.hour == x["hour"]),
+        #         "power_consumption",
+        #     ].values[0],
+        #     axis=1,
+        # )
 
         return df

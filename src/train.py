@@ -33,8 +33,7 @@ def _main(cfg: DictConfig):
         elif cfg.models.name == "catboost":
             # load dataset
             train = load_train_dataset(cfg)
-            print(train["cluster"].value_counts())
-            print(train["cluster"].isna().sum())
+
             # train model
             cb_trainer = CatBoostTrainer(config=cfg)
             cb_trainer.train_cross_validation(train)

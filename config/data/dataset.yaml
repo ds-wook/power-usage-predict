@@ -5,7 +5,7 @@ train: train.csv
 test: test.csv
 building_info: building_info.csv
 submit: sample_submission.csv
-n_splits: 2
+n_splits: 7
 dataset_rename:
   건물번호: building_number
   일시: date_time

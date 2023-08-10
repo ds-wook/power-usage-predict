@@ -14,7 +14,7 @@ params:
   used_ram_limit: 10gb
 path: res/models/
 name: catboost
-results: 2day-cross-validation-cluster-catboost
+results: 7day-cross-validation-target-catboost
 early_stopping_rounds: 100
 seed: 42
 verbose_eval: 500

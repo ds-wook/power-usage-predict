@@ -5,7 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.patches import Patch
 from sklearn.model_selection import TimeSeriesSplit
-
+# %%
 cmap_data = plt.cm.Paired
 cmap_cv = plt.cm.coolwarm
 plt.style.use("fivethirtyeight")
@@ -69,11 +69,7 @@ train_df.drop("num_date_time", axis=1, inplace=True)
 
 # %%
 
-train_df["date_time"] = pd.to_datetime(train_df["date_time"], format="%Y%m%d %H")
-# add time index feature
-train_df["time_idx"] = (
-    (train_df.loc[:, "date_time"] - train_df.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
-)
+train_df.isna().sum()
 
 # %%
 print(train_df["time_idx"].unique())
@@ -154,4 +150,39 @@ train["태양광용량(kW)"].value_counts()
 train_df["date_time"]
 # %%
 sns.lineplot(x="date_time", y="power_consumption", data=train_df)
+# %%
+train = pd.read_csv("../input/power-usage-predict/train_sample.csv")
+train.head()
+# %%
+train.isna().sum()
+# %%
+df = train.loc[train["heat_index"].isna()]
+# %%
+df["temperature_f"] = 9 / 5 * df["temperature"] + 32
+df["temperature_f"]
+# %%
+df["heat_index"] = (
+    -42.379
+    + 2.04901523 * df["temperature_f"]
+    + 10.14333127 * df["humidity"]
+    - 0.22475541 * df["temperature_f"] * df["humidity"]
+    - 0.00683783 * df["temperature_f"] * df["temperature_f"]
+    - 0.05481717 * df["humidity"] * df["humidity"]
+    + 0.00122874 * df["temperature_f"] * df["temperature_f"] * df["humidity"]
+    + 0.00085282 * df["temperature_f"] * df["humidity"] * df["humidity"]
+    - 0.00000199 * df["temperature_f"] * df["temperature_f"] * df["humidity"] * df["humidity"]
+)
+# %%
+df["heat_index"]
+# %%
+df["heat_index"] = (df["heat_index"] - 32) * 5 / 9
+df["heat_index"]
+# %%
+df.loc[df["heat_index"] < 32, "heat_index"] = 0
+df.loc[(df["heat_index"] >= 32) & (df["heat_index"] < 41), "heat_index"] = 1
+df.loc[(df["heat_index"] >= 41) & (df["heat_index"] < 54), "heat_index"] = 2
+df.loc[(df["heat_index"] >= 54) & (df["heat_index"] < 66), "heat_index"] = 3
+df.loc[df["heat_index"] >= 66, "heat_index"] = 4
+
+df["heat_index"]
 # %%

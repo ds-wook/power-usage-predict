@@ -52,7 +52,7 @@ class LightGBMTrainer(BaseModel):
         Custom Evaluation Function for LGBM
         """
         labels = train_data.get_label()
-        smape_val = smape(preds, labels)
+        smape_val = smape(np.expm1(preds), np.expm1(labels))
 
         return "SMAPE", smape_val, False
 

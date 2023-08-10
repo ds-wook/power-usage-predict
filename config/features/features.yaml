@@ -11,9 +11,9 @@ categorical_features:
   - building_type
   - month
   - weekday
+  - holiday
   - heat_index
   - cluster
-  - holiday
 numerical_features:
   - temperature
   - rainfall
