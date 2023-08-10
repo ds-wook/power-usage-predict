@@ -36,17 +36,18 @@ def _main(cfg: DictConfig):
 
     scaler = MinMaxScaler()
     columns = [
-        c for c in train.columns if c not in [*cfg.features.categorical_features] + ["building_number", "oof_preds"]
+        c for c in train_x.columns if c not in [*cfg.features.categorical_features] + ["building_number", "oof_preds"]
     ]
     train_x[columns] = scaler.fit_transform(train_x[columns])
     test_x[columns] = scaler.transform(test_x[columns])
-    cat_idx, cat_dims = categorize_tabnet_features(train_x, cfg.features.categorical_features)
+    cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     oof_preds = np.zeros((train.shape[0], 1))
     blending_preds = np.zeros(test_x.shape[0])
 
     for fold, (train_idx, valid_idx) in enumerate(kf.split(train), 1):
+        print(f"Train fold: {fold}")
         X_train, y_train = train_x.iloc[train_idx], train_y.iloc[train_idx]
         X_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]
 

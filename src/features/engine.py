@@ -143,3 +143,44 @@ class FeatureEngineering(BaseDataPreprocessor):
             df[f"{col}_trend"] = df[f"{col}_trend"].fillna(0)
 
         return df
+
+    def make_mean_features(self, df: pd.DataFrame, power_mean, power_hour_mean, power_hour_std) -> pd.DataFrame:
+        """
+        Make mean features
+        Args:
+            df: dataframe
+            power_mean: power mean dataframe
+            power_hour_mean: power hour mean dataframe
+            power_hour_std: power hour std dataframe
+        Returns:
+            dataframe
+        """
+        tqdm.pandas()
+        df["day_hour_mean"] = df.progress_apply(
+            lambda x: power_mean.loc[
+                (power_mean.building_number == x["building_number"])
+                & (power_mean.hour == x["hour"])
+                & (power_mean.day == x["day"]),
+                "power_consumption",
+            ].values[0],
+            axis=1,
+        )
+
+        df["hour_mean"] = df.progress_apply(
+            lambda x: power_hour_mean.loc[
+                (power_hour_mean.building_number == x["building_number"]) & (power_hour_mean.hour == x["hour"]),
+                "power_consumption",
+            ].values[0],
+            axis=1,
+        )
+
+        tqdm.pandas()
+        df["hour_std"] = df.progress_apply(
+            lambda x: power_hour_std.loc[
+                (power_hour_std.building_number == x["building_number"]) & (power_hour_std.hour == x["hour"]),
+                "power_consumption",
+            ].values[0],
+            axis=1,
+        )
+
+        return df

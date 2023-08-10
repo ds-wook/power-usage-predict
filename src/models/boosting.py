@@ -7,9 +7,7 @@ import numpy as np
 import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostRegressor, Pool
-from lineartree import LinearBoostRegressor
 from omegaconf import DictConfig
-from sklearn.linear_model import LinearRegression
 
 from evaluation.metrics import smape
 from models.base import BaseModel
@@ -122,22 +120,6 @@ class XGBoostTrainer(BaseModel):
         Custom Evaluation Function for LGBM
         """
         labels = train_data.get_label()
-        smape_val = smape(preds, labels)
+        smape_val = smape(np.expm1(preds), np.expm1(labels))
 
         return "SMAPE", smape_val
-
-
-class LinearBoostingTrainer(BaseModel):
-    def __init__(self, config: DictConfig):
-        super().__init__(config)
-
-    def _fit(
-        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame | None, y_valid: pd.Series | None
-    ) -> LinearBoostRegressor:
-        model = LinearBoostRegressor(base_estimator=LinearRegression(), random_state=self.config.models.seed)
-
-        model.fit(X_train, y_train)
-        preds = model.predict(X_valid)
-        print(f"Validation SMAPE: {smape(preds, y_valid)}")
-
-        return model

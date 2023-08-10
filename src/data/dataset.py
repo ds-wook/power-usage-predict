@@ -10,6 +10,10 @@ from features.engine import FeatureEngineering
 
 def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
+    power_mean = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_mean.csv")
+    power_hour_mean = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_hour_mean.csv")
+    power_hour_std = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_hour_std.csv")
+
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
 
     train = train.rename(columns={**cfg.data.dataset_rename})
@@ -24,6 +28,7 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
     # feature engineering
     feature_engineering = FeatureEngineering(config=cfg, df=train)
     train = feature_engineering.get_train_pipeline()
+    train = feature_engineering.make_mean_features(train, power_mean, power_hour_mean, power_hour_std)
 
     with open(Path(get_original_cwd()) / cfg.data.encoder / "cluster_map.pkl", "rb") as f:
         cluster_map = pickle.load(f)
@@ -44,8 +49,10 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
 
 def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     test = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.test)
+    power_mean = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_mean.csv")
+    power_hour_mean = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_hour_mean.csv")
+    power_hour_std = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "power_hour_std.csv")
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
-
     test = test.rename(columns={**cfg.data.dataset_rename})
 
     building_info = building_info.rename(columns={**cfg.data.building_info_rename})
@@ -58,6 +65,7 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
     # add feature
     feature_engineering = FeatureEngineering(config=cfg, df=test)
     test = feature_engineering.get_test_pipeline()
+    test = feature_engineering.make_mean_features(test, power_mean, power_hour_mean, power_hour_std)
 
     with open(Path(get_original_cwd()) / cfg.data.encoder / "cluster_map.pkl", "rb") as f:
         cluster_map = pickle.load(f)

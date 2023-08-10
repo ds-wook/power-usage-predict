@@ -9,6 +9,8 @@ drop_features:
   - date_time
 categorical_features:
   - building_type
+  - month
+  - weekday
   - heat_index
   - cluster
   - holiday
