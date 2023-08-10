@@ -76,7 +76,7 @@ def create_data_loader(df: pd.DataFrame, window_size: int, batch_size: int) -> t
     return data_loader
 
 
-def categorize_tabnet_features(cfg: DictConfig, train: pd.DataFrame) -> tuple[list[int], list[int]]:
+def categorize_tabnet_features(cfg: DictConfig, train: pd.DataFrame, test: pd.DataFrame) -> tuple[list[int], list[int]]:
     """
     Categorical encoding
     Args:
@@ -92,6 +92,7 @@ def categorize_tabnet_features(cfg: DictConfig, train: pd.DataFrame) -> tuple[li
 
     for cat_feature in tqdm(cfg.features.categorical_features):
         train[cat_feature] = label_encoder.fit_transform(train[cat_feature].values)
+        test[cat_feature] = label_encoder.transform(test[cat_feature].values)
         categorical_columns.append(cat_feature)
         categorical_dims[cat_feature] = len(label_encoder.classes_)
 

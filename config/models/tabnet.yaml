@@ -8,8 +8,8 @@ params:
   lambda_sparse: 0.0001
   max_epochs: 1000
   patience: 100
-  batch_size: 4096
-  virtual_batch_size: 128
+  batch_size: 1024
+  virtual_batch_size: 64
   num_workers: 1
   mask_type: entmax
   verbose: 10

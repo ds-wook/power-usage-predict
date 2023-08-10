@@ -40,7 +40,8 @@ def _main(cfg: DictConfig):
     ]
     train_x[columns] = scaler.fit_transform(train_x[columns])
     test_x[columns] = scaler.transform(test_x[columns])
-    cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x)
+
+    cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x, test_x)
 
     kf = KFold(n_splits=5, shuffle=True, random_state=42)
     oof_preds = np.zeros((train.shape[0], 1))
@@ -52,8 +53,6 @@ def _main(cfg: DictConfig):
         X_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]
 
         model = TabNetRegressor(
-            cat_idxs=cat_idx,
-            cat_dims=cat_dims,
             optimizer_fn=torch.optim.Adam,
             optimizer_params=dict(lr=cfg.models.params.lr),
             scheduler_params={
@@ -88,7 +87,9 @@ def _main(cfg: DictConfig):
         oof_preds[valid_idx] = model.predict(X_valid.to_numpy())
         blending_preds += model.predict(test_x.to_numpy()).flatten() / kf.n_splits
 
-    print(f"Stacking Score: {smape(blending_preds, train_y)}")
+        del X_train, y_train, X_valid, y_valid, model
+
+    print(f"Stacking Score: {smape(oof_preds.flatten(), train_y)}")
     submit["answer"] = blending_preds
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 
