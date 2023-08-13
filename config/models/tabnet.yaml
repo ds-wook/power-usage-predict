@@ -1,10 +1,10 @@
 params:
-  lr: 0.1
+  lr: 0.05
   step_size: 50
   gamma: 1.5
-  n_d: 16
-  n_steps: 5
-  n_a: 16
+  n_d: 64
+  n_steps: 3
+  n_a: 32
   lambda_sparse: 0.0001
   max_epochs: 1000
   patience: 100
@@ -21,5 +21,4 @@ eval_metric:
   - rmse
 path: res/models/
 name: tabnet
-results: 2day-cross-validation-tabnet
-teacher: 2day-cross-validation-xgboost
+results: 5fold-tabnet

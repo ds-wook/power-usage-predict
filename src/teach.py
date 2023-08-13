@@ -22,17 +22,17 @@ from models.infer import load_model
 def _main(cfg: DictConfig):
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     train = load_train_dataset(cfg)
-
+    train = train.fillna(-999)
+    test_x = load_test_dataset(cfg)
+    test_x = test_x.fillna(-999)
     train_x = train.drop(columns=[cfg.data.target])
-    train_x = train_x.fillna(0)
-    oof = load_model(cfg, cfg.oofs[0])
-    train_x["oof_preds"] = oof.oof_preds["oof_preds"].to_numpy()
     train_y = train[cfg.data.target]
 
-    preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / cfg.preds[0])
-    test_x = load_test_dataset(cfg)
-    test_x = test_x.fillna(0)
-    test_x["oof_preds"] = preds["answer"].to_numpy()
+    for i, (oof, pred) in enumerate(zip(cfg.oofs, cfg.preds)):
+        oof_preds = load_model(cfg, oof)
+        preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / pred)
+        train_x[f"oof_preds_{i}"] = oof_preds.oof_preds["oof_preds"].to_numpy()
+        test_x[f"oof_preds_{i}"] = preds["answer"].to_numpy()
 
     scaler = MinMaxScaler()
     columns = [
@@ -43,7 +43,7 @@ def _main(cfg: DictConfig):
 
     cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x, test_x)
 
-    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    kf = KFold(n_splits=10, shuffle=True, random_state=42)
     oof_preds = np.zeros((train.shape[0], 1))
     blending_preds = np.zeros(test_x.shape[0])
 
@@ -91,7 +91,7 @@ def _main(cfg: DictConfig):
 
     print(f"Stacking Score: {smape(oof_preds.flatten(), train_y)}")
     submit["answer"] = blending_preds
-    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
+    submit.to_csv(Path(get_original_cwd()) / cfg.output.path / f"{cfg.models.results}.csv", index=False)
 
 
 if __name__ == "__main__":

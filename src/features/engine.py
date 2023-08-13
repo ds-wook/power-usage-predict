@@ -10,9 +10,9 @@ class FeatureEngineering(BaseDataPreprocessor):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
 
-        df = self._fill_missing_features(df)
         df = self._add_time_features(df)
         df = self._add_features(df)
+        df = self._fill_missing_features(df)
         df = self._add_solar_features(df)
         df = self._add_trend_features(df)
         self.df = df
@@ -88,7 +88,6 @@ class FeatureEngineering(BaseDataPreprocessor):
         df.loc[(df["heat_index"] >= 54) & (df["heat_index"] < 66), "heat_index"] = 3
         df.loc[df["heat_index"] >= 66, "heat_index"] = 4
 
-        df["heat_index"] = df["heat_index"].astype(int)
         df["THI"] = 9 / 5 * df["temperature"] - 0.55 * (1 - df["humidity"] / 100) * (9 / 5 * df["humidity"] - 26) + 32
 
         cdhs = []

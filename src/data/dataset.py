@@ -30,14 +30,7 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
 
     train["cluster"] = train["building_number"].map(cluster_map)
 
-    if cfg.models.name == "n_beats":
-        train["time_idx"] = (
-            (train.loc[:, "date_time"] - train.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
-        )
-        train = train.drop(columns=["solar_power_capacity", "ess_capacity", "pcs_capacity", "num_date_time"])
-
-    else:
-        train = train.drop(columns=[*cfg.features.drop_features])
+    train = train.drop(columns=[*cfg.features.drop_features])
 
     return train
 
@@ -63,12 +56,6 @@ def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
 
     test["cluster"] = test["building_number"].map(cluster_map)
 
-    if cfg.models.name == "n_beats":
-        test["time_idx"] = (test.loc[:, "date_time"] - test.loc[0, "date_time"]).astype("timedelta64[h]").astype("int")
-        test["time_idx"] += 2040
-        test_x = test.drop(columns=["solar_power_capacity", "ess_capacity", "pcs_capacity", "num_date_time"])
-
-    else:
-        test_x = test.drop(columns=[*cfg.features.drop_features])
+    test_x = test.drop(columns=[*cfg.features.drop_features])
 
     return test_x

@@ -70,7 +70,6 @@ class BaseModel(metaclass=ABCMeta):
         for num in train["building_number"].unique():
             train_x = train[train["building_number"] == num].reset_index(drop=True)
             train_y = train_x[self.config.data.target]
-            train_y = np.log1p(train_y)
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
             train_x["fold_num"] = train_x["day"] // self.config.data.n_splits
 
@@ -102,7 +101,6 @@ class BaseModel(metaclass=ABCMeta):
                 del X_train, y_train, X_valid, y_valid, model
                 gc.collect()
 
-            oof_pred = np.expm1(oof_pred)
             oof_preds.loc[train["building_number"] == num, "oof_preds"] = oof_pred
 
         self.oof_preds = oof_preds

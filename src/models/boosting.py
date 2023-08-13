@@ -17,13 +17,7 @@ class LightGBMTrainer(BaseModel):
     def __init__(self, config: DictConfig):
         super().__init__(config)
 
-    def _fit(
-        self,
-        X_train: pd.DataFrame,
-        y_train: pd.Series,
-        X_valid: pd.DataFrame | None = None,
-        y_valid: pd.Series | None = None,
-    ) -> lgb.Booster:
+    def _fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series) -> lgb.Booster:
         train_set = lgb.Dataset(X_train, y_train, categorical_feature=self.config.features.categorical_features)
         valid_set = lgb.Dataset(X_valid, y_valid, categorical_feature=self.config.features.categorical_features)
 
@@ -56,7 +50,7 @@ class LightGBMTrainer(BaseModel):
         Custom Evaluation Function for LGBM
         """
         labels = train_data.get_label()
-        smape_val = smape(np.expm1(preds), np.expm1(labels))
+        smape_val = smape(preds, labels)
 
         return "SMAPE", smape_val, False
 
@@ -66,11 +60,7 @@ class CatBoostTrainer(BaseModel):
         super().__init__(config)
 
     def _fit(
-        self,
-        X_train: pd.DataFrame,
-        y_train: pd.Series,
-        X_valid: pd.DataFrame | None = None,
-        y_valid: pd.Series | None = None,
+        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
     ) -> CatBoostRegressor:
         train_set = Pool(X_train, y_train, cat_features=self.config.features.categorical_features)
         valid_set = Pool(X_valid, y_valid, cat_features=self.config.features.categorical_features)
@@ -95,13 +85,7 @@ class XGBoostTrainer(BaseModel):
     def __init__(self, config: DictConfig):
         super().__init__(config)
 
-    def _fit(
-        self,
-        X_train: pd.DataFrame,
-        y_train: pd.Series,
-        X_valid: pd.DataFrame | None = None,
-        y_valid: pd.Series | None = None,
-    ) -> xgb.Booster:
+    def _fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series) -> xgb.Booster:
         dtrain = xgb.DMatrix(X_train, y_train, enable_categorical=True)
         dvalid = xgb.DMatrix(X_valid, y_valid, enable_categorical=True)
 
@@ -132,6 +116,6 @@ class XGBoostTrainer(BaseModel):
         Custom Evaluation Function for LGBM
         """
         labels = train_data.get_label()
-        smape_val = smape(np.expm1(preds), np.expm1(labels))
+        smape_val = smape(preds, labels)
 
         return "SMAPE", smape_val

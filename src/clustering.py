@@ -28,7 +28,7 @@ def cluster_features(df: pd.DataFrame) -> dict[int, int]:
     # 정규화된 시간-요일별 전력사용량을 이미지처럼 저장
     d_list = np.array(d_list)
     d_list_ = d_list.reshape(100, -1)
-    model = KMeans(init="k-means++", n_clusters=5, random_state=0)
+    model = KMeans(init="k-means++", n_clusters=10, random_state=0)
     model.fit(d_list_)
     cluster = model.labels_
     cluster_map = {i + 1: c for i, c in enumerate(cluster)}
