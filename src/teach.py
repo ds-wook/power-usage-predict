@@ -10,12 +10,13 @@ from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from pytorch_tabnet.tab_model import TabNetRegressor
 from sklearn.model_selection import KFold
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import QuantileTransformer
 
 from data.dataset import load_test_dataset, load_train_dataset
 from evaluation.metrics import SMAPE, smape
 from features.base import categorize_tabnet_features
 from models.infer import load_model
+from utils.utils import reduce_mem_usage
 
 
 @hydra.main(config_path="../config/", config_name="teach")
@@ -23,8 +24,10 @@ def _main(cfg: DictConfig):
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     train = load_train_dataset(cfg)
     train = train.fillna(-999)
+    train = reduce_mem_usage(train)
     test_x = load_test_dataset(cfg)
     test_x = test_x.fillna(-999)
+    test_x = reduce_mem_usage(test_x)
     train_x = train.drop(columns=[cfg.data.target])
     train_y = train[cfg.data.target]
 
@@ -33,17 +36,19 @@ def _main(cfg: DictConfig):
         preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / pred)
         train_x[f"oof_preds_{i}"] = oof_preds.oof_preds["oof_preds"].to_numpy()
         test_x[f"oof_preds_{i}"] = preds["answer"].to_numpy()
-
-    scaler = MinMaxScaler()
+    scaler = QuantileTransformer(n_quantiles=100, random_state=42, output_distribution="normal")
     columns = [
-        c for c in train_x.columns if c not in [*cfg.features.categorical_features] + ["building_number", "oof_preds"]
+        c
+        for c in train_x.columns
+        if c not in [*cfg.features.categorical_features] + ["building_number"] and "oof_preds" not in c
     ]
+
     train_x[columns] = scaler.fit_transform(train_x[columns])
     test_x[columns] = scaler.transform(test_x[columns])
 
     cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x, test_x)
 
-    kf = KFold(n_splits=10, shuffle=True, random_state=42)
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
     oof_preds = np.zeros((train.shape[0], 1))
     blending_preds = np.zeros(test_x.shape[0])
 

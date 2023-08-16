@@ -79,7 +79,7 @@ class BaseModel(metaclass=ABCMeta):
                 print(f"building: {num} fold: {fold}")
                 train_idx = train_x[train_x["fold_num"] != idx].index
                 valid_idx = train_x[train_x["fold_num"] == idx].index
-                x_train = train_x.drop(columns=["fold_num"])
+                x_train = train_x.drop(columns=["fold_num", "day"])
 
                 X_train, y_train = x_train.loc[train_idx], train_y.loc[train_idx]
                 X_valid, y_valid = x_train.loc[valid_idx], train_y.loc[valid_idx]

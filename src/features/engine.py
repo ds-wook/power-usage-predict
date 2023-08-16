@@ -11,8 +11,8 @@ class FeatureEngineering(BaseDataPreprocessor):
         super().__init__(config)
 
         df = self._add_time_features(df)
-        df = self._add_features(df)
         df = self._fill_missing_features(df)
+        df = self._add_features(df)
         df = self._add_solar_features(df)
         df = self._add_trend_features(df)
         self.df = df
@@ -42,6 +42,9 @@ class FeatureEngineering(BaseDataPreprocessor):
         df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "holiday"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
+        df["day_use"] = 0
+        df.loc[df["day"] > 8, "day_use"] = 1
+        df.loc[df["day"] > 18, "day_use"] = 2
 
         return df
 

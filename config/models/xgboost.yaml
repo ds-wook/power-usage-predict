@@ -7,10 +7,9 @@ params:
   seed: 42
   objective: reg:squarederror
   n_jobs: -1
-multi_task: False
 path: res/models/
 name: xgboost
-results: 2day-cross-validation-cluster-xgboost
+results: 2day-cross-validation-day-xgboost
 early_stopping_rounds: 100
 num_boost_round: 10000
 verbose_eval: 500

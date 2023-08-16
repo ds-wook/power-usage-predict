@@ -13,6 +13,7 @@ categorical_features:
   - month
   - weekday
   - holiday
+  - day_use
   - heat_index
 numerical_features:
   - temperature

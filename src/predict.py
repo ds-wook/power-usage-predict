@@ -24,7 +24,7 @@ def _main(cfg: DictConfig):
 
     for num in tqdm(test["building_number"].unique()):
         test_x = test[test["building_number"] == num].reset_index(drop=True)
-        test_x = test_x.drop(columns=["building_number", "answer"])
+        test_x = test_x.drop(columns=["building_number", "day", "answer"])
         models = results.models
 
         for fold in folds:
@@ -32,7 +32,7 @@ def _main(cfg: DictConfig):
             pred = model.predict(xgb.DMatrix(test_x)) if isinstance(model, xgb.Booster) else model.predict(test_x)
             test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
-    submit["answer"] = np.expm1(test["answer"].to_numpy())
+    submit["answer"] = test["answer"].to_numpy()
 
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / f"{cfg.models.results}.csv", index=False)
 
