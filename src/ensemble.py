@@ -51,8 +51,6 @@ def _main(cfg: DictConfig):
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     train = load_train_dataset(cfg)
     target = train[cfg.data.target].to_numpy()
-    tabnet = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.tabnet)
-    student_preds = tabnet["answer"].to_numpy()
 
     oofs_list, preds_list = [], []
     for oof_name, pred_name in tqdm(zip(cfg.oofs, cfg.preds), total=len(cfg.oofs)):
@@ -69,7 +67,7 @@ def _main(cfg: DictConfig):
 
     blending_preds = np.average(preds_list, weights=best_weights, axis=0)
 
-    submit["answer"] = blending_preds * 0.9 + student_preds * 0.1
+    submit["answer"] = blending_preds
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 
 

@@ -9,7 +9,7 @@ defaults:
 
 output:
   path: output
-  name: 2day-cross-validation-tree-tabnet-ensemble.csv
+  name: 2day-cross-validation-tree-ensemble.csv
   submit: sample_submission.csv
   tabnet: 5fold-tabnet-student-ensemble.csv
 

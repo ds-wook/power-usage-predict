@@ -10,8 +10,8 @@ class FeatureEngineering(BaseDataPreprocessor):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
 
-        df = self._add_time_features(df)
         df = self._fill_missing_features(df)
+        df = self._add_time_features(df)
         df = self._add_features(df)
         df = self._add_solar_features(df)
         df = self._add_trend_features(df)
@@ -42,9 +42,12 @@ class FeatureEngineering(BaseDataPreprocessor):
         df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "holiday"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
-        df["day_use"] = 0
-        df.loc[df["day"] > 8, "day_use"] = 1
-        df.loc[df["day"] > 18, "day_use"] = 2
+        df["work_hour"] = ((df["hour"] >= 8) & (df["hour"] <= 19)).astype(int)
+        df["lunch_hour"] = ((df["hour"] >= 11) & (df["hour"] <= 13) & (df["weekday"] <= 4)).astype(int)
+        df["lunch_hour2"] = ((df["hour"] >= 12) & (df["hour"] <= 14) & (df["weekday"] > 4)).astype(int)
+
+        df["dinner_hour"] = ((df["hour"] >= 17) & (df["hour"] <= 22)).astype(int)
+        df["dinner_hour2"] = ((df["hour"] >= 18) & (df["weekday"] >= 4) & (df["weekday"] <= 5)).astype(int)
 
         return df
 
@@ -73,6 +76,12 @@ class FeatureEngineering(BaseDataPreprocessor):
         df["total_area"] = np.log1p(df["total_area"])
         df["cooling_area"] = np.log1p(df["cooling_area"])
         df["temperature_f"] = 9 / 5 * df["temperature"] + 32
+        df["sensory_temperature"] = (
+            13.12
+            + 0.6215 * df["temperature"]
+            - 11.37 * (df["windspeed"] * 3.6) ** 0.16
+            + 0.3965 * (df["windspeed"] * 3.6) ** 0.16 * df["temperature"]
+        )
         df["heat_index"] = (
             -42.379
             + 2.04901523 * df["temperature_f"]
@@ -142,12 +151,17 @@ class FeatureEngineering(BaseDataPreprocessor):
         weather_features = ["temperature", "windspeed", "humidity"]
 
         for col in tqdm(weather_features, leave=False):
-            df[f"{col}_trend"] = df.groupby(["building_number", "day", "month"])[col].transform(lambda x: x.diff())
-            df[f"{col}_trend"] = df[f"{col}_trend"].fillna(0)
+            df[f"{col}_trend"] = np.nan
+
+            for n in range(1, 101):
+                idx = df[df["building_number"] == n].index
+                df.loc[idx, f"{col}_trend"] = df[df["building_number"] == n][col].diff()
 
         return df
 
-    def make_mean_features(self, df: pd.DataFrame, power_mean, power_hour_mean, power_hour_std) -> pd.DataFrame:
+    def make_mean_features(
+        self, df: pd.DataFrame, power_mean: pd.DataFrame, power_hour_mean: pd.DataFrame, power_hour_std: pd.DataFrame
+    ) -> pd.DataFrame:
         """
         Make mean features
         Args:
@@ -169,21 +183,21 @@ class FeatureEngineering(BaseDataPreprocessor):
             axis=1,
         )
 
-        # df["hour_mean"] = df.progress_apply(
-        #     lambda x: power_hour_mean.loc[
-        #         (power_hour_mean.building_number == x["building_number"]) & (power_hour_mean.hour == x["hour"]),
-        #         "power_consumption",
-        #     ].values[0],
-        #     axis=1,
-        # )
+        df["hour_mean"] = df.progress_apply(
+            lambda x: power_hour_mean.loc[
+                (power_hour_mean.building_number == x["building_number"]) & (power_hour_mean.hour == x["hour"]),
+                "power_consumption",
+            ].values[0],
+            axis=1,
+        )
 
-        # tqdm.pandas()
-        # df["hour_std"] = df.progress_apply(
-        #     lambda x: power_hour_std.loc[
-        #         (power_hour_std.building_number == x["building_number"]) & (power_hour_std.hour == x["hour"]),
-        #         "power_consumption",
-        #     ].values[0],
-        #     axis=1,
-        # )
+        tqdm.pandas()
+        df["hour_std"] = df.progress_apply(
+            lambda x: power_hour_std.loc[
+                (power_hour_std.building_number == x["building_number"]) & (power_hour_std.hour == x["hour"]),
+                "power_consumption",
+            ].values[0],
+            axis=1,
+        )
 
         return df

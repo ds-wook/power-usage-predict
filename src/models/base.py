@@ -72,10 +72,10 @@ class BaseModel(metaclass=ABCMeta):
             train_y = train_x[self.config.data.target]
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
             train_x["fold_num"] = train_x["day"] // self.config.data.n_splits
-
+            print(train_x["fold_num"].unique())
             oof_pred = np.zeros(len(train_x))
 
-            for fold, idx in enumerate(train_x["fold_num"].unique(), 1):
+            for fold, idx in enumerate(train_x["fold_num"].unique()):
                 print(f"building: {num} fold: {fold}")
                 train_idx = train_x[train_x["fold_num"] != idx].index
                 valid_idx = train_x[train_x["fold_num"] == idx].index

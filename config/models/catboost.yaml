@@ -11,10 +11,10 @@ params:
   od_wait: 500
   iterations: 10000
   allow_writing_files: False
-  used_ram_limit: 16gb
+  used_ram_limit: 10gb
 path: res/models/
 name: catboost
-results: 2day-cross-validation-day-catboost
+results: 1day-cross-validation-catboost
 early_stopping_rounds: 100
 seed: 42
 verbose_eval: 500
