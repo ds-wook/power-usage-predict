@@ -1,11 +1,11 @@
 path: input/power-usage-predict/
 encoder: res/data/
 target: power_consumption
-train: train.csv
-test: test.csv
+train: preprocessing_train.csv
+test: preprocessing_test.csv
 building_info: building_info.csv
 submit: sample_submission.csv
-n_splits: 1
+n_splits: 2
 dataset_rename:
   건물번호: building_number
   일시: date_time

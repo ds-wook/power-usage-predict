@@ -9,7 +9,7 @@ from features.engine import FeatureEngineering
 
 
 def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
-    train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
+    train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "train.csv")
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
     train = train.rename(columns={**cfg.data.dataset_rename})
     train = train.drop(columns=[*cfg.features.drop_train_features])
@@ -35,7 +35,7 @@ def load_train_dataset(cfg: DictConfig) -> pd.DataFrame:
 
 
 def load_test_dataset(cfg: DictConfig) -> pd.DataFrame:
-    test = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.test)
+    test = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / "test.csv")
     building_info = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.building_info)
     test = test.rename(columns={**cfg.data.dataset_rename})
 

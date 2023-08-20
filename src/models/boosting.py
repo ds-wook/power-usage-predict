@@ -86,6 +86,10 @@ class XGBoostTrainer(BaseModel):
         super().__init__(config)
 
     def _fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series) -> xgb.Booster:
+        for col in self.config.features.categorical_features:
+            X_train[col] = X_train[col].astype("category")
+            X_valid[col] = X_valid[col].astype("category")
+
         dtrain = xgb.DMatrix(X_train, y_train, enable_categorical=True)
         dvalid = xgb.DMatrix(X_valid, y_valid, enable_categorical=True)
 

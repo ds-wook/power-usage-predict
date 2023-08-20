@@ -12,7 +12,8 @@ categorical_features:
   - hour
   - month
   - weekday
-  - holiday
+  - lunch_hour
+  - dinner_hour
   - heat_index
 numerical_features:
   - temperature

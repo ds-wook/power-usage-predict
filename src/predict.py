@@ -10,13 +10,12 @@ from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from tqdm import tqdm
 
-from data.dataset import load_test_dataset
 from models.infer import load_model
 
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
-    test = load_test_dataset(cfg)
+    test = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.test)
     test["answer"] = 0
     folds = np.unique(np.array(list(range(1, 31 + 1))) // cfg.data.n_splits)
     folds = [i for i in range(folds.shape[0])]
@@ -25,12 +24,20 @@ def _main(cfg: DictConfig):
     results = load_model(cfg, f"{cfg.models.results}.pkl")
     for num in tqdm(test["building_number"].unique()):
         test_x = test[test["building_number"] == num].reset_index(drop=True)
-        test_x = test_x.drop(columns=["building_number", "day", "answer"])
+        test_x = test_x.drop(columns=["building_number", "answer"])
+
+        for col in cfg.features.categorical_features:
+            test_x[col] = test_x[col].astype("category")
+
         models = results.models
 
         for fold in tqdm(folds, leave=False):
             model = models[f"building_{num}-fold_{fold}"]
-            pred = model.predict(xgb.DMatrix(test_x)) if isinstance(model, xgb.Booster) else model.predict(test_x)
+            pred = (
+                model.predict(xgb.DMatrix(test_x, enable_categorical=True))
+                if isinstance(model, xgb.Booster)
+                else model.predict(test_x)
+            )
             test.loc[test["building_number"] == num, "answer"] += pred / len(folds)
 
     submit["answer"] = test["answer"].to_numpy()

@@ -72,14 +72,13 @@ class BaseModel(metaclass=ABCMeta):
             train_y = train_x[self.config.data.target]
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
             train_x["fold_num"] = train_x["day"] // self.config.data.n_splits
-            print(train_x["fold_num"].unique())
             oof_pred = np.zeros(len(train_x))
 
             for fold, idx in enumerate(train_x["fold_num"].unique()):
                 print(f"building: {num} fold: {fold}")
                 train_idx = train_x[train_x["fold_num"] != idx].index
                 valid_idx = train_x[train_x["fold_num"] == idx].index
-                x_train = train_x.drop(columns=["fold_num", "day"])
+                x_train = train_x.drop(columns=["fold_num"])
 
                 X_train, y_train = x_train.loc[train_idx], train_y.loc[train_idx]
                 X_valid, y_valid = x_train.loc[valid_idx], train_y.loc[valid_idx]
@@ -89,7 +88,7 @@ class BaseModel(metaclass=ABCMeta):
                 oof_pred[valid_idx] = (
                     model.predict(X_valid)
                     if isinstance(model, lgb.Booster)
-                    else model.predict(xgb.DMatrix(X_valid))
+                    else model.predict(xgb.DMatrix(X_valid, enable_categorical=True))
                     if isinstance(model, xgb.Booster)
                     else model.predict(X_valid.to_numpy()).reshape(-1)
                     if isinstance(model, TabNetRegressor)
