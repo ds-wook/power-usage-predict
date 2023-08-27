@@ -9,20 +9,14 @@ defaults:
 
 output:
   path: output
-  name: 5fold-tabnet-student-ensemble.csv
+  name: cross-validation-median-tabnet-student.csv
   submit: sample_submission.csv
 
 oofs:
-  - 2day-cross-validation-xgboost.pkl
-  - 2day-cross-validation-lightgbm.pkl
-  - 2day-cross-validation-catboost.pkl
-  - 2day-cross-validation-cluster-xgboost.pkl
-  - 2day-cross-validation-cluster-lightgbm.pkl
-  - 2day-cross-validation-cluster-catboost.pkl
+  - stratified-group-cross-validation-median-xgboost.pkl
+  - stratified-group-cross-validation-median-lightgbm.pkl
+  - stratified-group-cross-validation-median-catboost.pkl
 preds:
-  - 2day-cross-validation-xgboost.csv
-  - 2day-cross-validation-lightgbm.csv
-  - 2day-cross-validation-catboost.csv
-  - 2day-cross-validation-cluster-xgboost.csv
-  - 2day-cross-validation-cluster-lightgbm.csv
-  - 2day-cross-validation-cluster-catboost.csv
+  - stratified-group-cross-validation-median-xgboost.csv
+  - stratified-group-cross-validation-median-lightgbm.csv
+  - stratified-group-cross-validation-median-catboost.csv

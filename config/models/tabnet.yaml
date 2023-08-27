@@ -21,4 +21,4 @@ eval_metric:
   - rmse
 path: res/models/
 name: tabnet
-results: 5fold-tabnet
+results: cross-validation-median-tabnet-student

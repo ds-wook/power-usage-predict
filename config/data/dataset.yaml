@@ -5,7 +5,7 @@ train: preprocessing_train.csv
 test: preprocessing_test.csv
 building_info: building_info.csv
 submit: sample_submission.csv
-n_splits: 2
+n_splits: 7
 dataset_rename:
   건물번호: building_number
   일시: date_time
@@ -38,5 +38,5 @@ building_type_translation:
   할인마트: Discount Mart
   호텔및리조트: Hotel and Resort
 categorical_features:
-  - building_type
   - heat_index
+  - building_type

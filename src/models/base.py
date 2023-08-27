@@ -14,6 +14,7 @@ import pandas as pd
 import xgboost as xgb
 from omegaconf import DictConfig
 from pytorch_tabnet.tab_model import TabNetRegressor
+from sklearn.model_selection import StratifiedGroupKFold
 
 from evaluation.metrics import smape
 
@@ -66,19 +67,19 @@ class BaseModel(metaclass=ABCMeta):
         oof_preds = train[["building_number", self.config.data.target]].copy()
         oof_preds = oof_preds.rename(columns={self.config.data.target: "oof_preds"})
         y_label = train[self.config.data.target]
+        kf = StratifiedGroupKFold(n_splits=self.config.data.n_splits, shuffle=False)
 
         for num in train["building_number"].unique():
             train_x = train[train["building_number"] == num].reset_index(drop=True)
             train_y = train_x[self.config.data.target]
             train_x = train_x.drop(columns=["building_number", self.config.data.target])
             train_x["fold_num"] = train_x["day"] // self.config.data.n_splits
+            folds = kf.split(train_x, train_x["fold_num"], groups=train_x["day"])
             oof_pred = np.zeros(len(train_x))
 
-            for fold, idx in enumerate(train_x["fold_num"].unique()):
+            for fold, (train_idx, valid_idx) in enumerate(folds):
                 print(f"building: {num} fold: {fold}")
-                train_idx = train_x[train_x["fold_num"] != idx].index
-                valid_idx = train_x[train_x["fold_num"] == idx].index
-                x_train = train_x.drop(columns=["fold_num"])
+                x_train = train_x.drop(columns=["fold_num", "day"])
 
                 X_train, y_train = x_train.loc[train_idx], train_y.loc[train_idx]
                 X_valid, y_valid = x_train.loc[valid_idx], train_y.loc[valid_idx]

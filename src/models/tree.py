@@ -8,9 +8,22 @@ import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostRegressor, Pool
 from omegaconf import DictConfig
+from sklearn.ensemble import HistGradientBoostingRegressor
 
 from evaluation.metrics import smape
 from models.base import BaseModel
+
+
+class HistGBMTrainer(BaseModel):
+    def __init__(self, config: DictConfig):
+        super().__init__(config)
+
+    def _fit(
+        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
+    ) -> HistGradientBoostingRegressor:
+        model = HistGradientBoostingRegressor(**self.config.models.params, random_state=self.config.models.seed)
+        model.fit(X_train, y_train)
+        return model
 
 
 class LightGBMTrainer(BaseModel):
@@ -62,14 +75,10 @@ class CatBoostTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
     ) -> CatBoostRegressor:
-        train_set = Pool(X_train, y_train, cat_features=self.config.features.categorical_features)
-        valid_set = Pool(X_valid, y_valid, cat_features=self.config.features.categorical_features)
+        train_set = Pool(X_train, y_train)
+        valid_set = Pool(X_valid, y_valid)
 
-        model = CatBoostRegressor(
-            random_state=self.config.models.seed,
-            **self.config.models.params,
-            cat_features=self.config.features.categorical_features,
-        )
+        model = CatBoostRegressor(random_state=self.config.models.seed, **self.config.models.params)
 
         model.fit(
             train_set,
@@ -86,10 +95,6 @@ class XGBoostTrainer(BaseModel):
         super().__init__(config)
 
     def _fit(self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series) -> xgb.Booster:
-        for col in self.config.features.categorical_features:
-            X_train[col] = X_train[col].astype("category")
-            X_valid[col] = X_valid[col].astype("category")
-
         dtrain = xgb.DMatrix(X_train, y_train, enable_categorical=True)
         dvalid = xgb.DMatrix(X_valid, y_valid, enable_categorical=True)
 

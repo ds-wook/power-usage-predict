@@ -3,31 +3,27 @@ from __future__ import annotations
 from pathlib import Path
 
 import hydra
-import numpy as np
 import pandas as pd
 import xgboost as xgb
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from tqdm import tqdm
 
+from data.dataset import load_test_dataset
 from models.infer import load_model
 
 
 @hydra.main(config_path="../config/", config_name="predict")
 def _main(cfg: DictConfig):
-    test = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.test)
+    test = load_test_dataset(cfg)
     test["answer"] = 0
-    folds = np.unique(np.array(list(range(1, 31 + 1))) // cfg.data.n_splits)
-    folds = [i for i in range(folds.shape[0])]
+    folds = list(range(cfg.data.n_splits))
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
 
     results = load_model(cfg, f"{cfg.models.results}.pkl")
-    for num in tqdm(test["building_number"].unique()):
+    for num in tqdm(test["building_number"].unique().tolist()):
         test_x = test[test["building_number"] == num].reset_index(drop=True)
-        test_x = test_x.drop(columns=["building_number", "answer"])
-
-        for col in cfg.features.categorical_features:
-            test_x[col] = test_x[col].astype("category")
+        test_x = test_x.drop(columns=["building_number", "day", "answer"])
 
         models = results.models
 

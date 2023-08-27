@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 from matplotlib.patches import Patch
 from sklearn.model_selection import TimeSeriesSplit
+
 # %%
 cmap_data = plt.cm.Paired
 cmap_cv = plt.cm.coolwarm
@@ -185,4 +186,19 @@ df.loc[(df["heat_index"] >= 54) & (df["heat_index"] < 66), "heat_index"] = 3
 df.loc[df["heat_index"] >= 66, "heat_index"] = 4
 
 df["heat_index"]
+
+
+# %%
+import pandas as pd
+
+train = pd.read_csv("../input/power-usage-predict/train.csv")
+xgb_results = pd.read_csv("../output/stratified-group-cross-validation-xgboost.csv")
+# %%
+train["전력소비량(kWh)"].max()
+# %%
+xgb_results["answer"].max()
+# %%
+train["전력소비량(kWh)"].min()
+# %%
+xgb_results["answer"].min()
 # %%

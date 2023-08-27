@@ -9,16 +9,16 @@ defaults:
 
 output:
   path: output
-  name: 1day-cross-validation-tree-ensemble.csv
+  name: stratified-group-cross-validation-median-final-ensemble.csv
   submit: sample_submission.csv
   tabnet: 5fold-tabnet-student-ensemble.csv
 
 oofs:
-  - 1day-cross-validation-xgboost.pkl
-  - 1day-cross-validation-lightgbm.pkl
-  - 1day-cross-validation-catboost.pkl
+  - stratified-group-cross-validation-median-xgboost.pkl
+  - stratified-group-cross-validation-median-lightgbm.pkl
+  - stratified-group-cross-validation-median-catboost.pkl
 preds:
-  - 1day-cross-validation-xgboost.csv
-  - 1day-cross-validation-lightgbm.csv
-  - 1day-cross-validation-catboost.csv
-
+  - stratified-group-cross-validation-median-xgboost.csv
+  - stratified-group-cross-validation-median-lightgbm.csv
+  - stratified-group-cross-validation-median-catboost.csv
+  - cross-validation-median-tabnet-student.csv

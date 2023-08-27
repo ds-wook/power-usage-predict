@@ -4,11 +4,11 @@ import warnings
 from pathlib import Path
 
 import hydra
-import pandas as pd
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 
-from models.boosting import CatBoostTrainer, LightGBMTrainer, XGBoostTrainer
+from data.dataset import load_train_dataset
+from models.tree import CatBoostTrainer, HistGBMTrainer, LightGBMTrainer, XGBoostTrainer
 
 
 @hydra.main(config_path="../config/", config_name="train")
@@ -17,7 +17,7 @@ def _main(cfg: DictConfig):
         warnings.filterwarnings("ignore", category=UserWarning)
         save_path = Path(get_original_cwd()) / cfg.models.path
 
-        train = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.train)
+        train = load_train_dataset(cfg)
 
         if cfg.models.name == "lightgbm":
             # train model
@@ -42,6 +42,14 @@ def _main(cfg: DictConfig):
 
             # save model
             xgb_trainer.save_model(save_path / f"{cfg.models.results}.pkl")
+
+        elif cfg.models.name == "histgbm":
+            # train model
+            hgb_trainer = HistGBMTrainer(config=cfg)
+            hgb_trainer.train_cross_validation(train)
+
+            # save model
+            hgb_trainer.save_model(save_path / f"{cfg.models.results}.pkl")
 
         else:
             raise NotImplementedError

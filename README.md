@@ -93,3 +93,4 @@ The boosting model has a significant performance difference compared to the NN. 
 
 - [Model](https://www.sciencedirect.com/science/article/pii/S0169207021001874)
 - [Loss](https://www.sciencedirect.com/science/article/pii/S0169207021001679)
+- [Ensemble](https://www.kaggle.com/competitions/ventilator-pressure-prediction/discussion/276138)

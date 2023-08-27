@@ -9,11 +9,11 @@ from features.base import BaseDataPreprocessor
 class FeatureEngineering(BaseDataPreprocessor):
     def __init__(self, config: DictConfig, df: pd.DataFrame):
         super().__init__(config)
+        df = self._fill_missing_features(df)
         df = self._add_time_features(df)
         df = self._add_features(df)
         df = self._add_solar_features(df)
         df = self._add_trend_features(df)
-        df = self._fill_missing_features(df)
         self.df = df
 
     def get_train_pipeline(self):
@@ -37,14 +37,16 @@ class FeatureEngineering(BaseDataPreprocessor):
         df["day"] = df["date_time"].dt.day
         df["month"] = df["date_time"].dt.month
         df["weekday"] = df["date_time"].dt.weekday
-        df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "weekday"] = 6
+        df["holiday"] = df["weekday"].apply(lambda x: 1 if x >= 5 else 0)
+        df.loc[df["date_time"].isin(["2022-06-06", "2022-08-15"]), "holiday"] = 1
         df["sin_time"] = np.sin(2 * np.pi * df.hour / 24)
         df["cos_time"] = np.cos(2 * np.pi * df.hour / 24)
-        df["sin_month"] = np.sin(2 * np.pi * df.day / 31)
-        df["cos_month"] = np.cos(2 * np.pi * df.day / 31)
         df["work_hour"] = ((df["hour"] >= 8) & (df["hour"] <= 19)).astype(int)
         df["lunch_hour"] = ((df["hour"] >= 11) & (df["hour"] <= 13) & (df["weekday"] <= 4)).astype(int)
+        df["lunch_hour2"] = ((df["hour"] >= 12) & (df["hour"] <= 14) & (df["weekday"] > 4)).astype(int)
+
         df["dinner_hour"] = ((df["hour"] >= 17) & (df["hour"] <= 22)).astype(int)
+        df["dinner_hour2"] = ((df["hour"] >= 18) & (df["weekday"] >= 4) & (df["weekday"] <= 5)).astype(int)
 
         return df
 
@@ -64,7 +66,7 @@ class FeatureEngineering(BaseDataPreprocessor):
 
     def _add_features(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        Add features
+        Add featurespython src/p
         Args:
             df: dataframe
         Returns:
@@ -119,7 +121,7 @@ class FeatureEngineering(BaseDataPreprocessor):
             dataframe
         """
         for col in tqdm(["rainfall", "windspeed", "humidity"], leave=False):
-            df[col] = df[col].interpolate(method="linear", limit_direction="both")
+            df[col] = df[col].fillna(df.groupby("building_number")[col].transform("mean"))
 
         return df
 
@@ -148,10 +150,8 @@ class FeatureEngineering(BaseDataPreprocessor):
         weather_features = ["temperature", "windspeed", "humidity"]
 
         for col in tqdm(weather_features, leave=False):
-            df[f"{col}_trend"] = np.nan
+            df[f"{col}_diff1"] = df[col] - df.groupby("building_number")[col].shift(1)
 
-            for n in range(1, 101):
-                idx = df[df["building_number"] == n].index
-                df.loc[idx, f"{col}_trend"] = df[df["building_number"] == n][col].diff()
+        df = df.fillna(0)
 
         return df

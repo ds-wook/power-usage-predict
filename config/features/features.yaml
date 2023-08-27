@@ -12,9 +12,13 @@ categorical_features:
   - hour
   - month
   - weekday
+  - holiday
   - lunch_hour
   - dinner_hour
+  - lunch_hour2
+  - dinner_hour2
   - heat_index
+  - cluster
 numerical_features:
   - temperature
   - rainfall

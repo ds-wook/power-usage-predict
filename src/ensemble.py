@@ -53,19 +53,19 @@ def _main(cfg: DictConfig):
     target = train[cfg.data.target].to_numpy()
 
     oofs_list, preds_list = [], []
-    for oof_name, pred_name in tqdm(zip(cfg.oofs, cfg.preds), total=len(cfg.oofs)):
+    for oof_name, pred_name in tqdm(zip(cfg.oofs, cfg.preds[:-1]), total=len(cfg.oofs)):
         oofs = load_model(cfg, oof_name)
         oofs_list.append(oofs.oof_preds["oof_preds"].to_numpy())
 
         preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / pred_name)
         preds_list.append(preds["answer"].to_numpy())
 
-    best_weights = get_best_weights(oofs_list, target)
+    preds_list.append(pd.read_csv(Path(get_original_cwd()) / cfg.output.path / cfg.preds[-1])["answer"].to_numpy())
     print(f"XGBoost Score: {smape(oofs_list[0], target)}")
     print(f"LightGBM Score: {smape(oofs_list[1], target)}")
     print(f"CatBoost Score: {smape(oofs_list[2], target)}")
 
-    blending_preds = np.average(preds_list, weights=best_weights, axis=0)
+    blending_preds = np.median(np.vstack(preds_list), axis=0)
 
     submit["answer"] = blending_preds
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
