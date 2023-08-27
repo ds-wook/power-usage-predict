@@ -26,7 +26,6 @@ def _main(cfg: DictConfig):
         test_x = test_x.drop(columns=["building_number", "day", "answer"])
 
         models = results.models
-
         for fold in tqdm(folds, leave=False):
             model = models[f"building_{num}-fold_{fold}"]
             pred = (

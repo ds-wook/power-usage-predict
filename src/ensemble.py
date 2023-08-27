@@ -51,23 +51,30 @@ def _main(cfg: DictConfig):
     submit = pd.read_csv(Path(get_original_cwd()) / cfg.data.path / cfg.data.submit)
     train = load_train_dataset(cfg)
     target = train[cfg.data.target].to_numpy()
+    tabnet_preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.tabnet)
+    tabnet_preds = tabnet_preds["answer"].to_numpy()
+
+    median_list = [
+        pd.read_csv(Path(get_original_cwd()) / cfg.output.path / median_pred)["answer"].to_numpy()
+        for median_pred in cfg.median_preds
+    ]
+    median_preds = np.median(np.vstack(median_list), axis=0)
 
     oofs_list, preds_list = [], []
-    for oof_name, pred_name in tqdm(zip(cfg.oofs, cfg.preds[:-1]), total=len(cfg.oofs)):
+    for oof_name, pred_name in tqdm(zip(cfg.oofs, cfg.preds), total=len(cfg.oofs)):
         oofs = load_model(cfg, oof_name)
         oofs_list.append(oofs.oof_preds["oof_preds"].to_numpy())
 
         preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / pred_name)
         preds_list.append(preds["answer"].to_numpy())
 
-    preds_list.append(pd.read_csv(Path(get_original_cwd()) / cfg.output.path / cfg.preds[-1])["answer"].to_numpy())
+    best_weights = get_best_weights(oofs_list, target)
     print(f"XGBoost Score: {smape(oofs_list[0], target)}")
     print(f"LightGBM Score: {smape(oofs_list[1], target)}")
     print(f"CatBoost Score: {smape(oofs_list[2], target)}")
 
-    blending_preds = np.median(np.vstack(preds_list), axis=0)
-
-    submit["answer"] = blending_preds
+    blending_preds = np.average(preds_list, weights=best_weights, axis=0)
+    submit["answer"] = blending_preds * 0.045 + median_preds * 0.95 + tabnet_preds * 0.005
     submit.to_csv(Path(get_original_cwd()) / cfg.output.path / cfg.output.name, index=False)
 
 

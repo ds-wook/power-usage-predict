@@ -16,7 +16,9 @@ oofs:
   - stratified-group-cross-validation-median-xgboost.pkl
   - stratified-group-cross-validation-median-lightgbm.pkl
   - stratified-group-cross-validation-median-catboost.pkl
+  - stratified-group-cross-validation-cat-catboost.pkl
 preds:
   - stratified-group-cross-validation-median-xgboost.csv
   - stratified-group-cross-validation-median-lightgbm.csv
   - stratified-group-cross-validation-median-catboost.csv
+  - stratified-group-cross-validation-cat-catboost.csv

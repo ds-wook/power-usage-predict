@@ -11,14 +11,19 @@ output:
   path: output
   name: stratified-group-cross-validation-median-final-ensemble.csv
   submit: sample_submission.csv
-  tabnet: 5fold-tabnet-student-ensemble.csv
+  tabnet: cross-validation-median-tabnet-student.csv
 
 oofs:
   - stratified-group-cross-validation-median-xgboost.pkl
   - stratified-group-cross-validation-median-lightgbm.pkl
   - stratified-group-cross-validation-median-catboost.pkl
+  - stratified-group-cross-validation-fe-catboost.pkl
 preds:
   - stratified-group-cross-validation-median-xgboost.csv
   - stratified-group-cross-validation-median-lightgbm.csv
   - stratified-group-cross-validation-median-catboost.csv
-  - cross-validation-median-tabnet-student.csv
+  - stratified-group-cross-validation-fe-catboost.csv
+median_preds:
+  - stratified-group-cross-validation-fe-xgboost.csv
+  - stratified-group-cross-validation-fe-lightgbm.csv
+  - stratified-group-cross-validation-fe-catboost.csv

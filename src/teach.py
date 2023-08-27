@@ -9,7 +9,7 @@ import torch
 from hydra.utils import get_original_cwd
 from omegaconf import DictConfig
 from pytorch_tabnet.tab_model import TabNetRegressor
-from sklearn.model_selection import StratifiedGroupKFold
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import QuantileTransformer
 
 from data.dataset import load_test_dataset, load_train_dataset
@@ -36,7 +36,6 @@ def _main(cfg: DictConfig):
         preds = pd.read_csv(Path(get_original_cwd()) / cfg.output.path / pred)
         train_x[f"oof_preds_{i}"] = oof_preds.oof_preds["oof_preds"].to_numpy()
         test_x[f"oof_preds_{i}"] = preds["answer"].to_numpy()
-
     scaler = QuantileTransformer(n_quantiles=100, random_state=42, output_distribution="normal")
     columns = [
         c
@@ -49,15 +48,11 @@ def _main(cfg: DictConfig):
 
     cat_idx, cat_dims = categorize_tabnet_features(cfg, train_x, test_x)
 
-    kf = StratifiedGroupKFold(n_splits=cfg.data.n_split, shuffle=False)
-    train_x["fold_num"] = train_x["day"] // cfg.data.n_splits
-    folds = kf.split(train_x, train_x["fold_num"], groups=train_x["day"])
-    train_x = train_x.drop(columns=["fold_num", "day", cfg.data.target])
-
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
     oof_preds = np.zeros((train.shape[0], 1))
     blending_preds = np.zeros(test_x.shape[0])
 
-    for fold, (train_idx, valid_idx) in enumerate(folds, 1):
+    for fold, (train_idx, valid_idx) in enumerate(kf.split(train), 1):
         print(f"Train fold: {fold}")
         X_train, y_train = train_x.iloc[train_idx], train_y.iloc[train_idx]
         X_valid, y_valid = train_x.iloc[valid_idx], train_y.iloc[valid_idx]

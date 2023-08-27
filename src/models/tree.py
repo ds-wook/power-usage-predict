@@ -75,10 +75,14 @@ class CatBoostTrainer(BaseModel):
     def _fit(
         self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
     ) -> CatBoostRegressor:
-        train_set = Pool(X_train, y_train)
-        valid_set = Pool(X_valid, y_valid)
+        train_set = Pool(X_train, y_train, cat_features=self.config.features.categorical_features)
+        valid_set = Pool(X_valid, y_valid, cat_features=self.config.features.categorical_features)
 
-        model = CatBoostRegressor(random_state=self.config.models.seed, **self.config.models.params)
+        model = CatBoostRegressor(
+            cat_features=self.config.features.categorical_features,
+            random_state=self.config.models.seed,
+            **self.config.models.params,
+        )
 
         model.fit(
             train_set,

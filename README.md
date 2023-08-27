@@ -7,17 +7,14 @@
 - RAM: 32GB
 - GPU: NVIDIA GeForce RTX 3090 Ti
 
-## Learner Architecture
-
-
 ## Model Architecture
 
 
 ## Ensemble Strategy
++ Stratified Group KFold
 
 ## Model Process
-
-## Seed
++ Boosting is All you need
 
 
 ## Requirements
@@ -35,59 +32,41 @@ $ conda env create --file environment.yaml
 
 Code execution for the new model is as follows:
 
-1. Put the basic data into the `input/upplus-recsys/` folder. When you execute the code that creates the data, the data for each `fold` star and `item_features`, `user_features` are stored in the `input/upplus-recsys/` folder.
+Running the learning code shell allows learning for each `fold`.
 
    ```sh
-   $ python scripts/make_dataset.py models=neucf
-   ```
-
-2. Running the learning code shell allows learning for each `fold`.
-
-   ```sh
-   $ sh scripts/train.sh
+   $ sh scripts/run.sh
    ```
 
    Modifying the learning code shell will allow you to learn for each `fold`. You can also change the seed value. Examples are as follows.
 
    ```sh
-   for seed in 22 94 95 96 99 3407
-   do
-       for fold in 0 1 2 3 4
-       do
-           python src/train.py models.fold=$fold models.seed=$seed
-       done
-   done
-   ```
+    python src/clustering.py
 
-3. Running the prediction code shell saves the inferred values for each `fold` in the `output` folder.
+    for model in xgboost lightgbm catboost; do
+        python src/train.py models=$model
+        python src/predict.py models=$model
+    done
 
-   ```sh
-   $ sh scripts/predict.sh
-   ```
+    python src/teach.py
+    python src/ensemble.py
 
-   Modifying the prediction code shell allows inference for each `fold`. And you need to set the seed value of the learned model. Examples are as follows.
-
-   ```sh
-   for seed in 22 94 95 96 99 3407
-   do
-       for fold in 0 1 2 3 4
-       do
-           python src/predict.py models.fold=$fold models.seed=94
-       done
-   done
    ```
 
 ## Benchmark
-5fold-custom-loss: 6.87163
-tweedie-loss: 6.81181
-10fold-tweedie-loss:  6.44824
+XGBoost-custom-loss: 5.5316
+LightGBM-tweedie-loss: 5.8699
+Categorical-Non-Catboost: 5.5252
+Categorical-Catboost: 5.7216
 
 The boosting model has a significant performance difference compared to the NN. Ensemble results also appeared to have a greater impact than other models.
 
 ## Submit
 
 ## Doesn't Work
-
++ meta feature: mean features
++ forcasting model: NBeat is not performance
++ 
 
 ## Reference
 

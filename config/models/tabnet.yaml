@@ -13,7 +13,7 @@ params:
   num_workers: 1
   mask_type: entmax
   verbose: 10
-  seed: 0
+  seed: 602
 eval_name:
   - train
   - valid
@@ -21,4 +21,4 @@ eval_metric:
   - rmse
 path: res/models/
 name: tabnet
-results: cross-validation-median-tabnet-student
+results: stratified-group-cross-validation-median-tabnet-student
