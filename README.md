@@ -19,7 +19,7 @@
 
 ## Requirements
 
-By default, `hydra-core==1.2.0` was added to the requirements given by the competition.
+By default, `hydra-core==1.1.0` was added to the requirements given by the competition.
 For `pytorch`, refer to the link at https://pytorch.org/get-started/previous-versions/ and reinstall it with the right version of `pytorch` for your environment.
 
 You can install a library where you can run the file by typing:
