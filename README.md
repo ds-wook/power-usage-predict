@@ -7,11 +7,11 @@
 - RAM: 32GB
 - GPU: NVIDIA GeForce RTX 3090 Ti
 
-## Model Architecture
-
+## Cross Validation
++ Stratified Group KFold
 
 ## Ensemble Strategy
-+ Stratified Group KFold
++ Ensemble Folds with Median
 
 ## Model Process
 + Boosting is All you need
@@ -32,13 +32,13 @@ $ conda env create --file environment.yaml
 
 Code execution for the new model is as follows:
 
-Running the learning code shell allows learning for each `fold`.
+Running the learning code shell.
 
    ```sh
    $ sh scripts/run.sh
    ```
 
-   Modifying the learning code shell will allow you to learn for each `fold`. You can also change the seed value. Examples are as follows.
+   Examples are as follows.
 
    ```sh
     python src/clustering.py
@@ -59,14 +59,14 @@ LightGBM-tweedie-loss: 5.8699
 Categorical-Non-Catboost: 5.5252
 Categorical-Catboost: 5.7216
 
-The boosting model has a significant performance difference compared to the NN. Ensemble results also appeared to have a greater impact than other models.
+The NN model has a significant performance difference compared to the boosting. Ensemble results also appeared to have a greater impact than other models.
 
 ## Submit
 
 ## Doesn't Work
 + meta feature: mean features
 + forcasting model: NBeat is not performance
-+ 
+
 
 ## Reference
 
