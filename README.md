@@ -41,16 +41,15 @@ Running the learning code shell.
    Examples are as follows.
 
    ```sh
-    python src/clustering.py
+   python src/clustering.py
 
-    for model in xgboost lightgbm catboost; do
-        python src/train.py models=$model
-        python src/predict.py models=$model
-    done
+   for model in xgboost lightgbm catboost; do
+    python src/train.py models=$model
+    python src/predict.py models=$model
+   done
 
-    python src/teach.py
-    python src/ensemble.py
-
+   python src/teach.py
+   python src/ensemble.py
    ```
 
 ## Benchmark
