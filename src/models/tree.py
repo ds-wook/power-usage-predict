@@ -104,13 +104,6 @@ class LightGBMTrainer(BaseModel):
 
         return model
 
-    def _weighted_mse(self, preds: np.ndarray, dtrain: lgb.Dataset, alpha: int = 1) -> tuple[np.ndarray, np.ndarray]:
-        label = dtrain.get_label()
-        residual = (label - preds).astype("float")
-        grad = np.where(residual > 0, -2 * alpha * residual, -2 * residual)
-        hess = np.where(residual > 0, 2 * alpha, 2.0)
-        return grad, hess
-
     def _evaluation(self, preds: pd.Series | np.ndarray, train_data: lgb.Dataset) -> tuple[str, float, bool]:
         """
         Custom Evaluation Function for LGBM
