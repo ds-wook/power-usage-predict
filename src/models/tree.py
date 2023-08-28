@@ -8,22 +8,9 @@ import pandas as pd
 import xgboost as xgb
 from catboost import CatBoostRegressor, Pool
 from omegaconf import DictConfig
-from sklearn.ensemble import HistGradientBoostingRegressor
 
 from evaluation.metrics import smape
 from models.base import BaseModel
-
-
-class HistGBMTrainer(BaseModel):
-    def __init__(self, config: DictConfig):
-        super().__init__(config)
-
-    def _fit(
-        self, X_train: pd.DataFrame, y_train: pd.Series, X_valid: pd.DataFrame, y_valid: pd.Series
-    ) -> HistGradientBoostingRegressor:
-        model = HistGradientBoostingRegressor(**self.config.models.params, random_state=self.config.models.seed)
-        model.fit(X_train, y_train)
-        return model
 
 
 class LightGBMTrainer(BaseModel):
