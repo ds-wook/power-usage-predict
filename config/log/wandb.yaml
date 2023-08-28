@@ -1,3 +1,0 @@
-project: power-usage-predict
-entity: ds-wook
-name: 5fold-kfold-lightgbm
