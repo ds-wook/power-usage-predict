@@ -1,6 +1,7 @@
 # power-usage-predict
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)  
-2023 전력사용량 예측 AI 경진대회
+2023 Power Consumption Prediction AI Competition.  
+Developing an AI model that predicts the power consumption at a specific point in time using building information and spatiotemporal data.
 
 ## Setting
 - CPU: i7-11799K core 8
